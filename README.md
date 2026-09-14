@@ -7,7 +7,7 @@ Offline-first universal compatibility list (combo/display, battery, frame, power
 - **Hybrid data**: ships with a bundled JSON catalog (works offline, instantly), silently upgrades from a remote JSON when a higher `version` is published, and caches it locally.
 - Category → brand → list browsing, per-brand filter.
 - Save/bookmark lists, recent searches, copy & WhatsApp share of a full list.
-- Material 3 UI, dark mode, portrait-locked, no login.
+- Material 3 UI, dark mode, responsive portrait/landscape layouts, no login.
 - AdMob adaptive banner + throttled interstitial (1 in 6 navigations), with an in-app personalised-ads toggle.
 - In-app privacy policy and disclaimer screens.
 
