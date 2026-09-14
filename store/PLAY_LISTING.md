@@ -45,7 +45,7 @@ FEATURES
 • Recent searches
 • Copy or share a full compatibility list on WhatsApp in one tap
 • Dark mode
-• Automatic list updates — new models added regularly, no reinstall needed
+• Optional list updates — when enabled, new models can arrive without a reinstall; the bundled list always works offline
 • Small app size, low data usage
 
 WHO IT'S FOR
