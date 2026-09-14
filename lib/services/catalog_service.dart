@@ -17,7 +17,8 @@ import 'search_engine.dart';
 /// Remote updates are strictly opt-in: the app never talks to a hardcoded
 /// server. Provide one at build time with e.g.
 ///   flutter build appbundle --dart-define=CATALOG_URL=https://your-host/catalog.json
-/// Without it the bundled + cached data is used and nothing leaves the device.
+/// Without it the bundled + cached data is used and no catalog data request
+/// leaves the device. Advertising remains a separate, consent-gated service.
 class CatalogService extends ChangeNotifier {
   CatalogService({http.Client? client}) : _client = client ?? http.Client();
 

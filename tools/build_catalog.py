@@ -342,9 +342,10 @@ def main() -> None:
         "version": 3,
         "updatedAt": date.today().isoformat(),
         "source": (
-            "Compatibility lists are compiled by Makund Mobile from its own parts "
-            "listings and workshop testing; the recent model directory is checked "
-            "against official manufacturer product pages."
+            "Compatibility lists are curated by Makund Mobile from manually "
+            "researched manufacturer and supplier references plus its own parts "
+            "records and workshop checks; the recent model directory is checked "
+            "against official manufacturer product pages. Verify fitment before use."
         ),
         "notice": (
             "Compatibility data is community contributed. Always physically verify "

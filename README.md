@@ -1,6 +1,6 @@
 # Combo Universal — Flutter Android App
 
-Offline-first universal compatibility list (combo/display, battery, frame, power/volume flex, charging sub-board, display connector, back cover, tempered glass and Touch/OCA glass) for mobile repair technicians. 100% self-contained: no hardcoded external URLs, no third-party server, nothing to infringe.
+Offline-first universal compatibility list (combo/display, battery, frame, power/volume flex, charging sub-board, display connector, back cover, tempered glass and Touch/OCA glass) for mobile repair technicians. The shipped app has no hardcoded update endpoint or required third-party server; compatibility references are curated and fitment must be independently verified.
 
 ## Features
 - **Smart highlight search** across every category at once, with debounce and exact-match ranking.
