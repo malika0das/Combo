@@ -24,17 +24,13 @@ class CompareScreen extends StatefulWidget {
 
 class _CompareScreenState extends State<CompareScreen> {
   late List<String> _models = [...widget.initialModels];
-  final TextEditingController _controller = TextEditingController();
+  // Owned by Autocomplete; keeping a reference lets a selection reset the
+  // field without creating a second controller or leaking the framework one.
+  TextEditingController? _inputController;
 
   /// Bumped whenever a comparison newly succeeds, to fire the burst.
   int _matchToken = 0;
   bool _wasMatched = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   /// Build must stay pure, so the celebration state is reconciled *after* the
   /// frame. Mutating it inline used to re-fire the burst and the haptic on
@@ -61,7 +57,6 @@ class _CompareScreenState extends State<CompareScreen> {
     }
     Haptics.confirm();
     setState(() => _models = [..._models, model]);
-    _controller.clear();
   }
 
   @override
@@ -111,8 +106,12 @@ class _CompareScreenState extends State<CompareScreen> {
               if (value.text.trim().length < 2) return const Iterable<String>.empty();
               return engine?.complete(value.text, limit: 8) ?? const <String>[];
             },
-            onSelected: _add,
-            fieldViewBuilder: (context, controller, focusNode, onSubmit) {
+            onSelected: (model) {
+              _add(model);
+              _inputController?.clear();
+            },
+            fieldViewBuilder: (context, controller, focusNode, _) {
+              _inputController = controller;
               return TextField(
                 controller: controller,
                 focusNode: focusNode,

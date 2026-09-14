@@ -11,6 +11,7 @@ import '../services/insight_service.dart';
 import '../theme.dart';
 import '../widgets/animated_icons.dart';
 import '../widgets/insight_card.dart';
+import '../widgets/stat_tile.dart';
 import '../widgets/ui.dart';
 import 'category_screen.dart';
 import 'compare_screen.dart';
@@ -148,6 +149,7 @@ class _Body extends StatelessWidget {
     final recent = scope.prefs.recent;
     final theme = Theme.of(context);
     final pad = context.pagePadding;
+    final modelCount = catalog.modelCount;
 
     final insight = const InsightService().build(
       prefs: scope.prefs,
@@ -171,6 +173,11 @@ class _Body extends StatelessWidget {
                 context,
               ).push(MaterialPageRoute(builder: (_) => const SearchScreen())),
             ),
+          ),
+          Gap.md,
+          EntranceFade(
+            index: 2,
+            child: _GlanceTiles(catalog: catalog, modelCount: modelCount),
           ),
           if (showInsight) ...[
             Gap.md,
@@ -327,9 +334,7 @@ class _Body extends StatelessWidget {
 /// Editorial hero: eyebrow, big time-aware greeting with a trailing period,
 /// and the sparkle motif — the reference design's signature move.
 class _Greeting extends StatelessWidget {
-  const _Greeting({required this.catalog});
-
-  final Catalog catalog;
+  const _Greeting();
 
   @override
   Widget build(BuildContext context) {
@@ -381,12 +386,9 @@ class _Greeting extends StatelessWidget {
   }
 }
 
-/// The catalog's scale as two pastel stat tiles — the number *is* the message,
-/// which is the whole point of the reference design's grid.
-///
-/// Two, not four: models and lists are the only totals worth leading with, and
-/// padding the grid to look fuller would only add noise. The per-part-type
-/// breakdown is the grid further down the page.
+/// Two high-signal totals keep the home screen useful at a glance: how many
+/// model entries are covered and how many lists can be ordered. The cards stay
+/// equal-height at larger text scales and never rely on a fragile aspect ratio.
 class _GlanceTiles extends StatelessWidget {
   const _GlanceTiles({required this.catalog, required this.modelCount});
 
@@ -395,50 +397,57 @@ class _GlanceTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lists = catalog.categories.fold<int>(0, (a, c) => a + c.groupCount);
+    final lists = catalog.groupCount;
     final height = statTileExtent(context);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: EntranceFade(
-            index: 2,
-            child: SizedBox(
-              height: height,
-              child: StatTile(
-                eyebrow: 'Models',
-                value: modelCount,
-                caption: 'ready offline',
-                tint: brandSeed,
-                icon: Icons.inventory_2_outlined,
-                semanticsLabel:
-                    '${groupDigits(modelCount)} models ready offline',
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 320;
+        final tiles = [
+          SizedBox(
+            height: height,
+            child: StatTile(
+              eyebrow: 'Models',
+              value: modelCount,
+              caption: 'ready offline',
+              tint: brandSeed,
+              icon: Icons.inventory_2_outlined,
+              semanticsLabel: '${groupDigits(modelCount)} models ready offline',
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: EntranceFade(
-            index: 3,
-            child: SizedBox(
-              height: height,
-              child: StatTile(
-                eyebrow: 'Lists',
-                value: lists,
-                caption: 'in ${catalog.categories.length} part types',
-                tint: const Color(0xFF9B5DE5),
-                icon: Icons.format_list_bulleted_rounded,
-                phase: 0.4,
-                semanticsLabel:
-                    '${groupDigits(lists)} compatibility lists '
-                    'across ${catalog.categories.length} part types',
-              ),
+          SizedBox(
+            height: height,
+            child: StatTile(
+              eyebrow: 'Lists',
+              value: lists,
+              caption: 'in ${catalog.categories.length} part types',
+              tint: const Color(0xFF9B5DE5),
+              icon: Icons.format_list_bulleted_rounded,
+              phase: 0.4,
+              semanticsLabel: '${groupDigits(lists)} compatibility lists',
             ),
           ),
-        ),
-      ],
+        ];
+
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              tiles[0],
+              const SizedBox(height: 10),
+              tiles[1],
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: tiles[0]),
+            const SizedBox(width: 12),
+            Expanded(child: tiles[1]),
+          ],
+        );
+      },
     );
   }
 }

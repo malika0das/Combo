@@ -132,7 +132,12 @@ class SearchEngine {
     var lastWasSpace = true;
     for (final rune in input.toLowerCase().runes) {
       final ch = String.fromCharCode(rune);
-      final isWord = (rune >= 97 && rune <= 122) || (rune >= 48 && rune <= 57);
+      // Keep the plus sign because `1+` is a real technician shorthand for
+      // OnePlus. Other punctuation still collapses to a separator, so spacing
+      // and dashes remain forgiving.
+      final isWord = (rune >= 97 && rune <= 122) ||
+          (rune >= 48 && rune <= 57) ||
+          rune == 43;
       if (isWord) {
         buffer.write(ch);
         lastWasSpace = false;
@@ -203,13 +208,30 @@ class SearchEngine {
     return union.toList(growable: false);
   }
 
+  /// Expands a shorthand even when it is glued to a model number. Technicians
+  /// commonly type `rn9pro`, not `rn 9 pro`; exact alias lookup alone would
+  /// miss the `rn` prefix and silently turn a useful shortcut into no result.
+  static String? _expandAliasPrefix(String token) {
+    final matches = aliases.keys
+        .where((key) =>
+            key.length >= 2 &&
+            token.length > key.length &&
+            token.startsWith(key) &&
+            RegExp(r'\d').hasMatch(token.substring(key.length)))
+        .toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    if (matches.isEmpty) return null;
+    final key = matches.first;
+    return '${aliases[key]} ${token.substring(key.length)}';
+  }
+
   /// Splits digits from letters so "note8" also matches "note 8", and expands
   /// brand shorthand.
   static List<String> tokenize(String normalized) {
     final tokens = <String>[];
     for (final raw in normalized.split(' ')) {
       if (raw.isEmpty) continue;
-      final expanded = aliases[raw] ?? raw;
+      final expanded = aliases[raw] ?? _expandAliasPrefix(raw) ?? raw;
       for (final part in expanded.split(' ')) {
         if (part.isEmpty) continue;
         // Split a mixed token like "9a5000" into "9a" only when it is clearly

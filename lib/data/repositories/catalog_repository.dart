@@ -92,8 +92,12 @@ class CatalogRepository extends ChangeNotifier {
     notifyListeners();
     try {
       final bundled = await _api.loadBundled();
+      if (!bundled.isUsable) {
+        throw const FormatException('Bundled catalog has no compatibility lists');
+      }
       final cached = _loadCached();
-      _catalog = (cached != null && cached.version > bundled.version)
+      final usableCached = cached != null && cached.isUsable;
+      _catalog = (usableCached && cached!.version > bundled.version)
           ? cached
           : bundled;
       _source = identical(_catalog, cached) ? 'cached update' : 'bundled';
@@ -133,7 +137,8 @@ class CatalogRepository extends ChangeNotifier {
       final raw = await _api.fetchRemoteRaw();
       if (raw != null) {
         final remote = _api.parseRaw(raw);
-        if (_catalog == null || remote.version > _catalog!.version) {
+        if (remote.isUsable &&
+            (_catalog == null || remote.version > _catalog!.version)) {
           _catalog = remote;
           _engine = null;
           _source = 'online update';

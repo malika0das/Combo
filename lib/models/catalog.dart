@@ -1,3 +1,17 @@
+/// Safely narrows an untrusted JSON list to object maps. Remote catalog files
+/// are optional, but a malformed update must never crash the whole app or leave
+/// the search screen with a half-built object graph.
+List<Map<String, dynamic>> _objectList(dynamic value) {
+  if (value is! List) return const [];
+  return value
+      .whereType<Map>()
+      .map((raw) => Map<String, dynamic>.from(raw))
+      .toList(growable: false);
+}
+
+String _string(dynamic value, [String fallback = '']) =>
+    value is String ? value : fallback;
+
 class Catalog {
   final int version;
   final String updatedAt;
@@ -12,13 +26,27 @@ class Catalog {
   });
 
   factory Catalog.fromJson(Map<String, dynamic> json) => Catalog(
-        version: (json['version'] as num?)?.toInt() ?? 0,
-        updatedAt: json['updatedAt'] as String? ?? '',
-        notice: json['notice'] as String? ?? '',
-        categories: (json['categories'] as List<dynamic>? ?? [])
-            .map((e) => Category.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        version: json['version'] is num ? (json['version'] as num).toInt() : 0,
+        updatedAt: _string(json['updatedAt']),
+        notice: _string(json['notice']),
+        categories: _objectList(json['categories'])
+            .map(Category.fromJson)
+            .toList(growable: false),
       );
+
+  /// Total model entries in the catalog. This intentionally counts a model
+  /// once per compatibility list: the number tells a technician how much
+  /// repair coverage is available, not how many distinct phone names exist.
+  int get modelCount =>
+      categories.fold(0, (sum, category) => sum + category.modelCount);
+
+  int get groupCount =>
+      categories.fold(0, (sum, category) => sum + category.groupCount);
+
+  /// A newer remote file is only safe to adopt when it contains real lists.
+  /// This prevents a truncated or schema-shifted response from replacing a
+  /// perfectly usable offline catalog with an empty screen.
+  bool get isUsable => categories.isNotEmpty && groupCount > 0;
 
   /// Flat list of every group with its category/brand context, used for search.
   List<SearchHit> search(String rawQuery, {String? categoryId, int limit = 400}) {
@@ -69,12 +97,12 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-        id: json['id'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-        icon: json['icon'] as String? ?? 'display',
-        brands: (json['brands'] as List<dynamic>? ?? [])
-            .map((e) => Brand.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        id: _string(json['id']),
+        name: _string(json['name']),
+        icon: _string(json['icon'], 'display'),
+        brands: _objectList(json['brands'])
+            .map(Brand.fromJson)
+            .toList(growable: false),
       );
 
   int get modelCount =>
@@ -91,11 +119,11 @@ class Brand {
   const Brand({required this.id, required this.name, required this.groups});
 
   factory Brand.fromJson(Map<String, dynamic> json) => Brand(
-        id: json['id'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-        groups: (json['groups'] as List<dynamic>? ?? [])
-            .map((e) => ComboGroup.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        id: _string(json['id']),
+        name: _string(json['name']),
+        groups: _objectList(json['groups'])
+            .map(ComboGroup.fromJson)
+            .toList(growable: false),
       );
 
   int get modelCount => groups.fold(0, (s, g) => s + g.models.length);
@@ -117,13 +145,14 @@ class ComboGroup {
   });
 
   factory ComboGroup.fromJson(Map<String, dynamic> json) => ComboGroup(
-        code: json['code'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        quality: json['quality'] as String? ?? '',
-        note: json['note'] as String? ?? '',
-        models: (json['models'] as List<dynamic>? ?? [])
-            .map((e) => e.toString())
-            .toList(),
+        code: _string(json['code']),
+        title: _string(json['title']),
+        quality: _string(json['quality']),
+        note: _string(json['note']),
+        models: (json['models'] is List ? (json['models'] as List) : const [])
+            .map((e) => e.toString().trim())
+            .where((model) => model.isNotEmpty && model != 'null')
+            .toList(growable: false),
       );
 
   /// Compact one-line form, handy for WhatsApp quotes.

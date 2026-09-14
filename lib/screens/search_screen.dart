@@ -43,6 +43,8 @@ class _SearchScreenState extends State<SearchScreen> {
   );
   List<String> _completions = const [];
   bool _searching = false;
+  SearchEngine? _lastSearchedEngine;
+  bool _searchQueued = false;
 
   List<SearchHit> get _hits => _result.hits;
 
@@ -86,16 +88,17 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _run(String value) {
+    if (!mounted) return;
     final scope = AppScope.of(context);
     final engine = scope.catalog.engine;
-    final result =
-        engine?.search(value, categoryId: _categoryId) ??
-        const SearchResult(
-          hits: [],
-          suggestions: [],
-          scopedCategoryId: null,
-          fuzzy: false,
-        );
+    if (engine == null) {
+      // Keep the skeleton visible until the bundled index exists instead of
+      // presenting a false "nothing found" state during cold start.
+      setState(() => _searching = value.trim().isNotEmpty);
+      return;
+    }
+    _lastSearchedEngine = engine;
+    final result = engine.search(value, categoryId: _categoryId);
     final hadHits = _result.hits.isNotEmpty;
     setState(() {
       _result = result;
@@ -116,9 +119,34 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
+    return AnimatedBuilder(
+      // Search can be opened while the bundled catalog is still warming up,
+      // and a remote refresh can replace the index while this route is open.
+      // Rebuilding from the catalog notifier keeps both cases visible without
+      // duplicating catalog state inside the screen.
+      animation: Listenable.merge([scope.catalog, scope.prefs]),
+      builder: (context, _) => _buildWithCatalog(context, scope),
+    );
+  }
+
+  Widget _buildWithCatalog(BuildContext context, AppScope scope) {
     final scheme = Theme.of(context).colorScheme;
     final hasQuery = _query.trim().isNotEmpty;
     final categories = scope.catalog.catalog?.categories ?? const <Category>[];
+    final engine = scope.catalog.engine;
+    if (hasQuery &&
+        engine != null &&
+        !identical(engine, _lastSearchedEngine) &&
+        !_searchQueued) {
+      _searchQueued = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchQueued = false;
+        if (!mounted || !identical(AppScope.of(context).catalog.engine, engine)) {
+          return;
+        }
+        _run(_query);
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Hero(

@@ -15,6 +15,8 @@ void main() {
   test('bundled catalog parses with categories and models', () {
     expect(catalog.categories, isNotEmpty);
     expect(catalog.categories.first.modelCount, greaterThan(0));
+    expect(catalog.modelCount, greaterThan(catalog.categories.first.modelCount));
+    expect(catalog.groupCount, greaterThan(900));
   });
 
   test('group codes are unique (saved-list keys depend on this)', () {
@@ -65,6 +67,42 @@ void main() {
     expect(scoped, isNotEmpty);
     expect(scoped.every((h) => h.category.id == 'battery'), isTrue);
     expect(catalog.search('a', limit: 25).length, lessThanOrEqualTo(25));
+  });
+
+  test('malformed optional catalog fields fail soft', () {
+    final parsed = Catalog.fromJson({
+      'version': 'unknown',
+      'updatedAt': 2026,
+      'categories': [
+        {
+          'id': 'battery',
+          'name': 'Battery',
+          'brands': [
+            {
+              'id': 'demo',
+              'name': 'Demo',
+              'groups': [
+                {
+                  'code': 42,
+                  'title': null,
+                  'models': ['Demo A', null, ''],
+                },
+                'not an object',
+              ],
+            },
+            null,
+          ],
+        },
+        'not an object',
+      ],
+    });
+
+    expect(parsed.version, 0);
+    expect(parsed.categories, hasLength(1));
+    expect(parsed.categories.single.brands, hasLength(1));
+    expect(parsed.categories.single.brands.single.groups, hasLength(1));
+    expect(parsed.categories.single.brands.single.groups.single.models,
+        ['Demo A']);
   });
 
   test('search is case insensitive and partial', () {

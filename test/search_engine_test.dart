@@ -24,6 +24,8 @@ void main() {
     test('splits word+number tokens and expands aliases', () {
       expect(SearchEngine.tokenize('note8'), contains('8'));
       expect(SearchEngine.tokenize('rn'), contains('redmi'));
+      expect(SearchEngine.tokenize('rn9pro'), contains('redmi'));
+      expect(SearchEngine.tokenize('1+'), contains('oneplus'));
       expect(SearchEngine.tokenize('samsang'), contains('samsung'));
     });
 
@@ -45,6 +47,7 @@ void main() {
     test('spacing and punctuation do not matter', () {
       expect(engine.search('redmi9a').hits, isNotEmpty);
       expect(engine.search('  REDMI  9a ').hits, isNotEmpty);
+      expect(engine.search('rn9pro').hits, isNotEmpty);
     });
 
     test('typos still find the phone', () {

@@ -57,8 +57,14 @@ class CatalogService extends ChangeNotifier {
     notifyListeners();
     try {
       final bundled = await _loadBundled();
+      if (!bundled.isUsable) {
+        throw const FormatException('Bundled catalog has no compatibility lists');
+      }
       final cached = await _loadCached();
-      _catalog = (cached != null && cached.version > bundled.version) ? cached : bundled;
+      final usableCached = cached != null && cached.isUsable;
+      _catalog = (usableCached && cached!.version > bundled.version)
+          ? cached
+          : bundled;
       _source = identical(_catalog, cached) ? 'cached update' : 'bundled';
       _engine = null; // built lazily on first access, off the critical path
       _error = null;
@@ -103,7 +109,8 @@ class CatalogService extends ChangeNotifier {
       if (res.statusCode == 200) {
         final remote = Catalog.fromJson(
             jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>);
-        if (_catalog == null || remote.version > _catalog!.version) {
+        if (remote.isUsable &&
+            (_catalog == null || remote.version > _catalog!.version)) {
           _catalog = remote;
           _engine = null; // invalidate; rebuilt lazily against the new catalog
           _source = 'online update';
