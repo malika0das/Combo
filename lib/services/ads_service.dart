@@ -16,20 +16,38 @@ class AdIds {
     defaultValue: false,
   );
 
-  // TODO: replace with your real AdMob unit IDs before publishing.
-  static const String realBannerAndroid =
-      'ca-app-pub-0000000000000000/0000000000';
-  static const String realInterstitialAndroid =
-      'ca-app-pub-0000000000000000/1111111111';
+  /// Ad unit IDs are build inputs, not source-controlled secrets. Debug builds
+  /// use Google's test units; a release build must opt into live units with
+  /// USE_REAL_ADS and provide both values explicitly.
+  static const String realBannerAndroid = String.fromEnvironment(
+    'ADMOB_BANNER_ANDROID_ID',
+    defaultValue: '',
+  );
+  static const String realInterstitialAndroid = String.fromEnvironment(
+    'ADMOB_INTERSTITIAL_ANDROID_ID',
+    defaultValue: '',
+  );
 
   static const String testBannerAndroid =
       'ca-app-pub-3940256099942544/6300978111';
   static const String testInterstitialAndroid =
       'ca-app-pub-3940256099942544/1033173712';
 
-  static String get banner => useReal ? realBannerAndroid : testBannerAndroid;
-  static String get interstitial =>
-      useReal ? realInterstitialAndroid : testInterstitialAndroid;
+  static bool _looksLikeAdUnit(String value) =>
+      RegExp(r'^ca-app-pub-\d{16}/\d{10}$').hasMatch(value);
+
+  static bool _isLiveUnit(String value, String testUnit) =>
+      _looksLikeAdUnit(value) && value != testUnit;
+
+  static bool get realUnitsConfigured =>
+      _isLiveUnit(realBannerAndroid, testBannerAndroid) &&
+      _isLiveUnit(realInterstitialAndroid, testInterstitialAndroid);
+
+  static String get banner =>
+      useReal && realUnitsConfigured ? realBannerAndroid : testBannerAndroid;
+  static String get interstitial => useReal && realUnitsConfigured
+      ? realInterstitialAndroid
+      : testInterstitialAndroid;
 }
 
 class AdsService extends ChangeNotifier {
@@ -49,6 +67,7 @@ class AdsService extends ChangeNotifier {
   /// two overlapping loads would otherwise let the later one orphan the first
   /// loaded ad, which is never shown and never disposed.
   bool _preloading = false;
+  int _requestGeneration = 0;
 
   /// Set once the service is torn down; in-flight load callbacks check this to
   /// dispose their ad instead of resurrecting it into a dead service.
@@ -65,11 +84,10 @@ class AdsService extends ChangeNotifier {
   static const Duration interstitialCooldown = Duration(minutes: 2);
 
   // defaultTargetPlatform instead of dart:io's Platform, so this file also
-  // compiles for web (where dart:io does not exist and ads never load).
+  // compiles for web (where dart:io does not exist and ads never load). This
+  // release currently supplies Android-only IDs; never send them to iOS.
   bool get supported =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   /// True only once the SDK is up *and* consent allows an ad request. Every ad
   /// widget must gate on this, not merely on initialisation.
@@ -128,6 +146,8 @@ class AdsService extends ChangeNotifier {
       if (error != null) debugPrint('Privacy options error: ${error.message}');
     });
     _canRequestAds = await ConsentInformation.instance.canRequestAds();
+    _discardLoadedInterstitial();
+    if (_initialized && _canRequestAds) _preloadInterstitial();
     notifyListeners();
   }
 
@@ -135,12 +155,39 @@ class AdsService extends ChangeNotifier {
   Future<void> resetConsent() async {
     ConsentInformation.instance.reset();
     _canRequestAds = false;
+    _discardLoadedInterstitial();
     notifyListeners();
+  }
+
+  void _discardLoadedInterstitial() {
+    _requestGeneration++;
+    _interstitial?.dispose();
+    _interstitial = null;
+    final pending = _showing;
+    _showing = null;
+    pending?.dispose();
   }
 
   Future<void> init({required bool personalized}) async {
     _personalized = personalized;
     if (!supported || _initializing) return;
+
+    // Never ship Google's test units or placeholder live IDs in a production
+    // build, and never send live traffic from a debug build. A misconfigured
+    // release simply runs ad-free instead of sending invalid requests or
+    // misleading a Play reviewer.
+    if (!kReleaseMode && AdIds.useReal) {
+      debugPrint('Ads disabled: live units are release-only.');
+      return;
+    }
+    if (kReleaseMode && !AdIds.useReal) {
+      debugPrint('Ads disabled: release build did not opt into live units.');
+      return;
+    }
+    if (AdIds.useReal && !AdIds.realUnitsConfigured) {
+      debugPrint('Ads disabled: live AdMob unit IDs are not configured.');
+      return;
+    }
 
     _initializing = true;
     try {
@@ -166,7 +213,12 @@ class AdsService extends ChangeNotifier {
   }
 
   void setPersonalized(bool value) {
+    if (_personalized == value) return;
     _personalized = value;
+    // Do not keep an ad loaded with the old request setting after the user
+    // changes the toggle. Existing banner slots reload from the notification.
+    _discardLoadedInterstitial();
+    if (_initialized && _canRequestAds) _preloadInterstitial();
     notifyListeners();
   }
 
@@ -196,6 +248,7 @@ class AdsService extends ChangeNotifier {
     if (!supported || !_initialized || !_canRequestAds) return;
     if (_interstitial != null || _preloading || _disposed) return;
     _preloading = true;
+    final generation = _requestGeneration;
 
     final future = InterstitialAd.load(
       adUnitId: AdIds.interstitial,
@@ -205,8 +258,9 @@ class AdsService extends ChangeNotifier {
           _preloading = false;
           // The service died while the load was in flight; never leave the ad
           // owned by nobody (the classic interstitial memory leak).
-          if (_disposed) {
+          if (_disposed || !_canRequestAds || generation != _requestGeneration) {
             ad.dispose();
+            if (!_disposed && _canRequestAds) _preloadInterstitial();
             return;
           }
           _interstitial = ad;
@@ -229,6 +283,9 @@ class AdsService extends ChangeNotifier {
         onAdFailedToLoad: (_) {
           _preloading = false;
           _interstitial = null;
+          if (!_disposed && _canRequestAds && generation != _requestGeneration) {
+            _preloadInterstitial();
+          }
         },
       ),
     );
@@ -238,6 +295,9 @@ class AdsService extends ChangeNotifier {
     unawaited(future.catchError((_) {
       _preloading = false;
       _interstitial = null;
+      if (!_disposed && _canRequestAds && generation != _requestGeneration) {
+        _preloadInterstitial();
+      }
     }));
   }
 

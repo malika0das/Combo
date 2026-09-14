@@ -38,7 +38,17 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
   }
 
   void _onAdsChanged() {
-    if (mounted && !_loaded) _maybeLoad();
+    if (!mounted) return;
+    // A consent or personalisation change invalidates the loaded creative,
+    // even if the device width has not changed.
+    final stale = _ad;
+    final hadAd = stale != null || _loaded || _loadedForWidth != 0;
+    _ad = null;
+    _loaded = false;
+    _loadedForWidth = 0;
+    stale?.dispose();
+    if (hadAd) setState(() {});
+    _maybeLoad();
   }
 
   @override
@@ -66,10 +76,12 @@ class _BannerAdSlotState extends State<BannerAdSlot> {
     // can reload cleanly when ads come back online.
     if (!widget.ads.supported || !widget.ads.initialized) {
       final stale = _ad;
+      final hadAd = stale != null || _loaded || _loadedForWidth != 0;
       _ad = null;
       _loaded = false;
       _loadedForWidth = 0;
       stale?.dispose();
+      if (hadAd && mounted) setState(() {});
       return;
     }
     if (_loading) return;

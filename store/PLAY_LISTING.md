@@ -20,8 +20,8 @@ WHY TECHNICIANS USE IT
 • Compare two phones to check whether one part covers both before you buy stock.
 • Build an order list with your own notes and send it to your supplier on WhatsApp.
 • Know before you order which universal part covers the most models.
-• Stock less, sell more: one combo can cover 5–9 models.
-• Works fully offline. No login, no signup.
+• See how many model fitments a compatibility group lists before ordering stock.
+• Core compatibility lists work offline. Ads and optional list updates need a network connection. No login, no signup.
 
 WHAT'S INSIDE
 • Folder / Display / Combo universal list
@@ -65,9 +65,22 @@ universal combo list, combo universal, lcd combo list, display compatibility, mo
 - Category: Tools (alt: Business)
 - Tags: Utilities, Reference
 - Contact email + phone required
-- Privacy policy URL: publish `store/PRIVACY_POLICY.md` at any public URL you control (required — must not 404)
-- Content rating questionnaire: Everyone (no UGC, no ads targeted at children)
-- Ads: declare **Yes, this app contains ads**
-- Target audience: 18+ (professional tool) → avoids Families policy requirements
-- Data safety: see `store/DATA_SAFETY.md`
-- Graphics: 512×512 icon, 1024×500 feature graphic, min 2 phone screenshots (1080×1920)
+- Privacy policy URL: publish `store/PRIVACY_POLICY.md` at a public,
+  non-geofenced URL you control, verify it in an incognito browser, then enter
+  the final URL manually in Play Console. Candidate after merge (not yet
+  verified): `https://github.com/malika0das/Combo/blob/main/store/PRIVACY_POLICY.md`.
+  A GitHub Pages URL for this public repository is another candidate only after
+  it is configured and published; this branch file itself is not a hosted
+  policy URL.
+- Content rating questionnaire: answer from the shipped binary; expected
+  Everyone / PEGI 3, with no UGC and no child-directed ads.
+- Ads: declare **Yes, this app contains ads**. AdMob and UMP are configured in
+  AdMob Console separately from this repository.
+- Target audience: 18+ (professional tool); do not enrol in Designed for
+  Families.
+- Data safety: use `store/DATA_SAFETY.md`, then confirm every answer against
+  the uploaded AAB and current SDK disclosures.
+- Technical: confirm `targetSdk 36`, release signing, and Android App Bundle
+  delivery before uploading.
+- Graphics: 512×512 icon, 1024×500 feature graphic, min 2 phone screenshots
+  (1080×1920)

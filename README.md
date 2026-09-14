@@ -135,16 +135,19 @@ flutter run --dart-define=CATALOG_URL=https://your-host.example/catalog.json
 ```
 
 ## Before you publish
-1. **AdMob IDs** — replace the test app ID in `android/app/src/main/AndroidManifest.xml` and the `real*` unit IDs in `lib/services/ads_service.dart`, then build with `--dart-define=USE_REAL_ADS=true`. Shipping test IDs to production, or real IDs on a dev build, both violate AdMob policy.
+1. **AdMob IDs** — provide the live app ID through `android/local.properties` (`admob.appId=...`) or `-PadmobAppId=...`, and pass both live unit IDs at release build time with `--dart-define=USE_REAL_ADS=true`, `--dart-define=ADMOB_BANNER_ANDROID_ID=...` and `--dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=...`. Debug builds use Google's test IDs; release builds fail closed rather than shipping sample or placeholder IDs.
 2. **Application ID** — currently `com.makund.combouniversal` (`android/app/build.gradle`). The existing Play listing uses `com.makund.combosupport`; use that ID instead if you are updating the same app rather than publishing a new one.
 3. **Signing** — create `android/key.properties` (git-ignored) with `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
 4. **Icon** — `store/icon_source.png` is a 1024px source; generate launcher densities (e.g. with `flutter_launcher_icons`) into `android/app/src/main/res/mipmap-*`.
-5. **Privacy policy URL** — publish `store/PRIVACY_POLICY.md` at a public URL and enter it in Play Console.
-6. **Data safety form** — copy the answers in `store/DATA_SAFETY.md`.
+5. **Privacy policy URL** — publish `store/PRIVACY_POLICY.md` at a public, non-geofenced URL you control, verify it in an incognito browser, and enter the final URL manually in Play Console. The repository file is not itself a hosted policy URL.
+6. **Data safety form** — use `store/DATA_SAFETY.md`, then verify every answer against the exact AAB and current SDK disclosures.
 
 Build the release bundle:
 ```bash
-flutter build appbundle --release --dart-define=USE_REAL_ADS=true
+flutter build appbundle --release \
+  --dart-define=USE_REAL_ADS=true \
+  --dart-define=ADMOB_BANNER_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/BBBBBBBBBB \
+  --dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/IIIIIIIIII
 ```
 
 ## Publishing catalog updates without an app update
@@ -153,7 +156,7 @@ Host a JSON file with the same schema as `assets/data/catalog.json` at `CATALOG_
 ## Policy notes baked in
 - Minimal permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `AD_ID`. No location/storage/contacts, no `QUERY_ALL_PACKAGES`.
 - Cleartext traffic disabled; HTTPS-only network security config.
-- `targetSdk 35` (meets Play's 2025+ target API requirement).
+- `compileSdk 36` and `targetSdk 36` (Android 16; required for new apps and updates submitted from 31 August 2026).
 - Interstitials never appear on app open or back press, and banners render only after load — no accidental clicks.
 - Trademark disclaimer for brand names included in the listing and in-app terms.
 

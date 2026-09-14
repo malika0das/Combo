@@ -12,6 +12,13 @@ if (localPropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0.0'
+def configuredAdmobAppId = localProperties.getProperty('admob.appId') ?: project.findProperty('admobAppId')
+def sampleAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
+def validAdmobAppId = { value ->
+    value instanceof String &&
+            value ==~ /ca-app-pub-\d{16}~\d{10}/ &&
+            value != sampleAdmobAppId
+}
 
 // Optional release signing: create android/key.properties with
 // storePassword / keyPassword / keyAlias / storeFile
@@ -19,6 +26,34 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.withReader('UTF-8') { reader -> keystoreProperties.load(reader) }
+}
+
+def validReleaseSigning = {
+    if (!keystorePropertiesFile.exists()) return false
+    def required = ['storePassword', 'keyPassword', 'keyAlias', 'storeFile']
+    required.every { key ->
+        def value = keystoreProperties.getProperty(key)
+        value instanceof String && !value.trim().isEmpty()
+    } && project.file(keystoreProperties.getProperty('storeFile')).isFile()
+}
+
+// Build configuration is evaluated for every variant, so validate only when
+// Gradle is actually asked to execute a release task. Debug builds remain
+// convenient, while production packaging fails before it can contain sample
+// AdMob configuration or the debug signing key.
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.allTasks.any { it.name.toLowerCase().contains('release') }) {
+        if (!validAdmobAppId(configuredAdmobAppId)) {
+            throw new GradleException(
+                    'Release builds require a valid live admob.appId or -PadmobAppId '
+                    + '(ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY).')
+        }
+        if (!validReleaseSigning()) {
+            throw new GradleException(
+                    'Release builds require a complete production android/key.properties '
+                    + 'and an existing keystore; debug signing is not allowed.')
+        }
+    }
 }
 
 android {
@@ -43,11 +78,13 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
 
-        // Real AdMob app ID comes from android/key.properties (or -PadmobAppId)
-        // and is never committed. Falls back to Google's public sample ID.
-        def realAdmobAppId = localProperties.getProperty('admob.appId')
+        // The live AdMob app ID is a build input, never committed. Debug and
+        // unconfigured builds use Google's public sample ID. The release build
+        // below fails closed if a valid live ID is not supplied.
         manifestPlaceholders += [
-            admobAppId: realAdmobAppId ?: 'ca-app-pub-3940256099942544~3347511713'
+            admobAppId: validAdmobAppId(configuredAdmobAppId)
+                    ? configuredAdmobAppId
+                    : sampleAdmobAppId
         ]
         resourceConfigurations += ['en', 'hi']
     }
@@ -65,6 +102,12 @@ android {
 
     buildTypes {
         release {
+            manifestPlaceholders.admobAppId = validAdmobAppId(configuredAdmobAppId)
+                    ? configuredAdmobAppId
+                    : sampleAdmobAppId
+            // The task-graph guard above rejects this fallback for release
+            // packaging; it exists only so Gradle can configure debug builds
+            // when local signing properties are absent.
             signingConfig keystorePropertiesFile.exists()
                     ? signingConfigs.release
                     : signingConfigs.debug
