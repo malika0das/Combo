@@ -1,0 +1,474 @@
+# Recent phone directory: released or officially listed during 2024–2026.
+# One model per line. These names are directory entries, not compatibility claims.
+# Manufacturer references used for this pass:
+# https://www.samsung.com/global/sustainability/policy-file/AYVhR1k6BicAIx95/LCA_Results_for_Smartphones.pdf
+# https://www.mi.com/in/event/phones/
+# https://www.vivo.com/en/security
+# https://www.oppo.com/en/smartphones/
+# https://www.realme.com/global/support
+# https://www.oneplus.com/global
+# https://motorolanews.com/
+# https://www.infinixmobility.com/
+# https://www.tecno-mobile.com/
+# https://www.honor.com/sg/phones/
+# https://consumer.huawei.com/en/phones/
+# https://www.zte.com.cn/global/about/news/
+# https://global.redmagic.gg/
+# https://www.apple.com/newsroom/
+# https://store.google.com/us/magazine/google-pixel-phones
+
+# Samsung Galaxy — S, Z and A families
+Samsung Galaxy S24
+Samsung Galaxy S24+
+Samsung Galaxy S24 Ultra
+Samsung Galaxy S24 FE
+Samsung Galaxy S25
+Samsung Galaxy S25+
+Samsung Galaxy S25 Ultra
+Samsung Galaxy S25 Edge
+Samsung Galaxy S25 FE
+Samsung Galaxy S26
+Samsung Galaxy S26+
+Samsung Galaxy S26 Ultra
+Samsung Galaxy Z Flip6
+Samsung Galaxy Z Fold6
+Samsung Galaxy Z Flip7
+Samsung Galaxy Z Flip7 FE
+Samsung Galaxy Z Fold7
+Samsung Galaxy A16 4G
+Samsung Galaxy A16 5G
+Samsung Galaxy A17
+Samsung Galaxy A17 5G
+Samsung Galaxy A26 5G
+Samsung Galaxy A36 5G
+Samsung Galaxy A56 5G
+Samsung Galaxy A37 5G
+Samsung Galaxy A57 5G
+
+# Xiaomi, Redmi and Poco
+Xiaomi 14
+Xiaomi 14 Ultra
+Xiaomi 14T
+Xiaomi 14T Pro
+Xiaomi 15
+Xiaomi 15 Ultra
+Xiaomi 15T
+Xiaomi 15T Pro
+Xiaomi 17
+Xiaomi 17 Ultra
+Redmi Note 13 Pro 4G
+Redmi Note 13 Pro 5G
+Redmi Note 13 Pro+ 5G
+Redmi Note 14 4G
+Redmi Note 14 5G
+Redmi Note 14 Pro 4G
+Redmi Note 14 Pro 5G
+Redmi Note 14 Pro+ 5G
+Redmi Note 15 5G
+Redmi Note 15 Pro 5G
+Redmi Note 15 Pro+ 5G
+Redmi Note 15R
+Redmi Note 17 5G
+Redmi 14C
+Redmi 15 4G
+Redmi 15 5G
+Redmi 15C
+Redmi 17 5G
+Redmi Turbo 4
+Redmi Turbo 4 Pro
+Redmi Turbo 5
+Poco X6
+Poco X6 Pro
+Poco X7
+Poco X7 Pro
+Poco F6
+Poco F6 Pro
+Poco F7
+Poco F7 Pro
+Poco F7 Ultra
+Poco F8
+Poco F8 Pro
+Poco F8 Ultra
+Poco M6
+Poco M6 Pro
+Poco M6 Plus
+Poco M7
+Poco M7 Pro
+Poco M7 Plus
+Poco C75
+Poco C85
+
+# Vivo and iQOO
+Vivo X100
+Vivo X100 Pro
+Vivo X100 Ultra
+Vivo X200
+Vivo X200 Pro
+Vivo X200 FE
+Vivo X200T
+Vivo X300
+Vivo X300 Pro
+Vivo X300 FE
+Vivo X300 Ultra
+Vivo X Fold3 Pro
+Vivo X Fold5
+Vivo V30
+Vivo V30 Pro
+Vivo V30e
+Vivo V40
+Vivo V40 Pro
+Vivo V40 SE
+Vivo V50
+Vivo V50 Lite
+Vivo V50 Lite 5G
+Vivo V60
+Vivo V60e
+Vivo V60 Lite
+Vivo V60 Lite 5G
+Vivo V70
+Vivo V70 Elite
+Vivo V70 FE
+Vivo V70 Lite 5G
+Vivo T3
+Vivo T3 Pro
+Vivo T4
+Vivo T4 Pro
+Vivo T4x
+Vivo T5
+Vivo T5x
+Vivo Y200
+Vivo Y200 Pro
+Vivo Y200e
+Vivo Y300
+Vivo Y300 Pro
+Vivo Y300 Pro Plus
+Vivo Y400 Pro
+Vivo Y500i
+iQOO 12
+iQOO 13
+iQOO 15
+iQOO 15R
+iQOO Neo 9 Pro
+iQOO Neo 10
+iQOO Neo 10R
+iQOO Z9
+iQOO Z9x
+iQOO Z9s
+iQOO Z9s Pro
+iQOO Z10
+iQOO Z10R
+iQOO Z10x
+iQOO Z11
+iQOO Z11X
+iQOO Z11 Turbo
+
+# OPPO Find, Reno and A families
+OPPO Find X7
+OPPO Find X7 Ultra
+OPPO Find X8
+OPPO Find X8 Pro
+OPPO Find X8 Ultra
+OPPO Find X9
+OPPO Find X9 Pro
+OPPO Find X9 Ultra
+OPPO Find X9s
+OPPO Reno12
+OPPO Reno12 Pro
+OPPO Reno13
+OPPO Reno13 Pro
+OPPO Reno13 F
+OPPO Reno13 FS
+OPPO Reno14
+OPPO Reno14 Pro
+OPPO Reno14 F
+OPPO Reno15
+OPPO Reno15 Pro
+OPPO Reno15 Pro Max
+OPPO Reno15 F
+OPPO A3 Pro
+OPPO A5 Pro
+OPPO A5 Pro 5G
+OPPO A5x
+OPPO A6
+OPPO A6 Pro
+OPPO A6 5G
+OPPO K13
+OPPO K14
+
+# realme
+realme 13 4G
+realme 13 5G
+realme 13 Pro
+realme 13 Pro+
+realme 14 5G
+realme 14 Pro
+realme 14 Pro+
+realme 14T 5G
+realme 14x 5G
+realme 15
+realme 15 Pro
+realme 15T
+realme 15 Lite
+realme 15x
+realme 16
+realme 16 Pro
+realme 16 Pro+
+realme 16T
+realme GT 6
+realme GT 6T
+realme GT 7
+realme GT 7 Pro
+realme GT 7T
+realme GT 8 Pro
+realme P3
+realme P3 5G
+realme P3 Ultra 5G
+realme P3 Lite
+realme P4
+realme P4x
+realme P4 Lite
+realme P4 Power 5G
+realme C71
+realme C75
+realme C85
+realme C85 5G
+realme C85 Pro
+realme C100
+realme C100 5G
+realme C100i
+realme C100x
+realme Note 50
+realme Note 60
+realme Note 60x
+realme Note 70
+realme Note 80
+realme Narzo 70 5G
+realme Narzo 70 Pro 5G
+realme Narzo 70x 5G
+realme Narzo 90X 5G
+
+# OnePlus
+OnePlus 12
+OnePlus 12R
+OnePlus 13
+OnePlus 13R
+OnePlus 13s
+OnePlus 15
+OnePlus 15R
+OnePlus Nord 4
+OnePlus Nord 5
+OnePlus Nord CE4
+OnePlus Nord CE5
+
+# Motorola
+Moto Edge 50
+Moto Edge 50 Fusion
+Moto Edge 50 Pro
+Moto Edge 50 Ultra
+Moto Edge 50 Neo
+Moto Edge 2025
+Moto Edge 60
+Moto Edge 60 Fusion
+Moto Edge 60 Pro
+Moto Edge 60 Neo
+Moto Edge 60 Stylus
+Moto Edge 70
+Moto Edge 70 Fusion
+Moto Edge 70 Pro
+Moto Edge 70 Pro+
+Moto Razr 50
+Moto Razr 50 Ultra
+Moto Razr 60
+Moto Razr 60 Ultra
+Moto Razr 2025
+Moto Razr Fold
+Moto G05
+Moto G15
+Moto G15 Power
+Moto G35 5G
+Moto G45 5G
+Moto G56
+Moto G57
+Moto G57 Power
+Moto G67
+Moto G67 Power
+Moto G85
+Moto G96
+Moto G Power 2025
+Moto G Play 2026
+Moto G 2025
+Moto G 2026
+Moto G Stylus 2025
+Moto G Stylus 2026
+Moto Signature
+
+# Infinix
+Infinix Note 40
+Infinix Note 40 Pro
+Infinix Note 40 Pro 5G
+Infinix Note 40 Pro+ 5G
+Infinix Note 40S
+Infinix Note 50
+Infinix Note 50 Pro
+Infinix Note 50 Pro+
+Infinix Note 50S
+Infinix Note 50X 5G
+Infinix Note 60
+Infinix Note 60 Pro
+Infinix Note 60 Ultra
+Infinix Note Edge
+Infinix GT 30
+Infinix GT 30 Pro
+Infinix GT 50 Pro
+Infinix Hot 60
+Infinix Hot 60i 5G
+Infinix Hot 60 Pro
+Infinix Hot 60 Pro+
+Infinix Hot 70
+Infinix Hot 70 Pro 5G+
+Infinix Zero 40
+Infinix Zero 40 5G
+Infinix Smart 10
+Infinix Smart 10 Plus
+Infinix Smart 20
+
+# TECNO and itel
+TECNO Camon 30
+TECNO Camon 30 Pro 5G
+TECNO Camon 30S
+TECNO Camon 30S Pro
+TECNO Camon 40
+TECNO Camon 40 Pro
+TECNO Camon 40 Premier 5G
+TECNO Camon 50
+TECNO Camon 50 Ultra 5G
+TECNO Camon Slim 5G
+TECNO POVA 6
+TECNO POVA 6 Pro 5G
+TECNO POVA 6 Neo
+TECNO POVA 6 Neo 5G
+TECNO POVA 7
+TECNO POVA 7 Pro 5G
+TECNO POVA Curve
+TECNO POVA Slim
+TECNO POVA 8 Pro 5G
+TECNO SPARK 30
+TECNO SPARK 30 5G
+TECNO SPARK 30C
+TECNO SPARK 30C 5G
+TECNO SPARK 40
+TECNO SPARK 40C
+TECNO SPARK 40 Pro
+TECNO SPARK 40 Pro+
+TECNO SPARK 40 5G
+TECNO SPARK Go 1
+TECNO SPARK Go 2
+TECNO SPARK Go 5G
+TECNO SPARK 50
+TECNO SPARK 50 Pro
+TECNO SPARK 50 5G
+TECNO POP 9
+TECNO POP 10
+TECNO PHANTOM V Fold2 5G
+TECNO PHANTOM V Flip2 5G
+itel A80
+itel A100
+itel A100C
+itel City 100
+itel Power 70
+itel S25 Ultra
+
+# Huawei and Honor
+HUAWEI Pura 70
+HUAWEI Pura 70 Pro
+HUAWEI Pura 70 Ultra
+HUAWEI Pura 80
+HUAWEI Pura 80 Pro
+HUAWEI Pura 80 Ultra
+HUAWEI Mate 70
+HUAWEI Mate 70 Pro
+HUAWEI Mate 80
+HUAWEI Mate 80 Pro
+HUAWEI Mate X6
+HUAWEI Mate X7
+HUAWEI Mate XT ULTIMATE DESIGN
+HUAWEI nova 12
+HUAWEI nova 13
+HUAWEI nova 14
+HUAWEI nova 14 Pro
+HUAWEI nova 15
+HUAWEI nova 15 Max
+HUAWEI nova Y73
+HUAWEI Pocket 2
+HUAWEI Pocket 3
+HONOR Magic V3
+HONOR Magic V5
+HONOR Magic V6
+HONOR Magic V Flip
+HONOR Magic V Flip 2
+HONOR Magic7
+HONOR Magic7 Pro
+HONOR Magic7 RSR Porsche Design
+HONOR Magic8
+HONOR Magic8 Pro
+HONOR Magic8 Pro Air
+HONOR 400
+HONOR 400 Pro
+HONOR 400 Lite
+HONOR 400 Smart
+HONOR 500
+HONOR 500 Pro
+HONOR 600
+HONOR 600 Pro
+HONOR GT
+HONOR GT Pro
+HONOR X5d
+HONOR X5d Plus
+HONOR X6c
+HONOR X6d
+HONOR X7d 4G
+HONOR X7d 5G
+HONOR X7e
+HONOR X9c
+HONOR X9d
+HONOR X70
+HONOR X80i
+
+# ZTE, nubia and REDMAGIC
+ZTE Axon 60 Ultra
+ZTE Blade A55
+ZTE Blade A75
+ZTE Blade V70
+ZTE Blade V70 Design
+ZTE Blade V70 Vita
+nubia Z60 Ultra
+nubia Z70 Ultra
+nubia Z80 Ultra
+nubia Music 2
+nubia Neo 3 GT
+REDMAGIC 9S Pro
+REDMAGIC 10 Pro
+REDMAGIC 10 Air
+REDMAGIC 11 Pro
+
+# Apple iPhone
+iPhone 16e
+iPhone 17
+iPhone Air
+iPhone 17 Pro
+iPhone 17 Pro Max
+iPhone 18 Pro
+iPhone 18 Pro Max
+iPhone Duo
+
+# Google Pixel
+Google Pixel 9
+Google Pixel 9a
+Google Pixel 9 Pro
+Google Pixel 9 Pro XL
+Google Pixel 9 Pro Fold
+Google Pixel 10
+Google Pixel 10a
+Google Pixel 10 Pro
+Google Pixel 10 Pro XL
+Google Pixel 10 Pro Fold

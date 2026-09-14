@@ -26,7 +26,8 @@ void main() {
       expect(SearchEngine.tokenize('rn'), contains('redmi'));
       expect(SearchEngine.tokenize('rn9pro'), contains('redmi'));
       expect(SearchEngine.tokenize('1+'), contains('oneplus'));
-      expect(SearchEngine.tokenize('samsang'), contains('samsung'));
+      // Samsung model names are canonicalized to their retail Galaxy family.
+      expect(SearchEngine.tokenize('samsang'), contains('galaxy'));
     });
 
     test('edit distance bails out early', () {
@@ -115,7 +116,16 @@ void main() {
 
     test('hasModel is normalization aware', () {
       expect(engine.hasModel('  redmi   9a '), isTrue);
+      expect(engine.hasModel('Samsung A10'), isTrue);
       expect(engine.hasModel('not a real phone'), isFalse);
+    });
+
+    test('directory-only models are searchable without fake part hits', () {
+      expect(engine.hasModel('Galaxy S25'), isTrue);
+      expect(engine.profileFor('Galaxy S25').isEmpty, isTrue);
+      expect(engine.search('Galaxy S25').hits, isEmpty);
+      expect(engine.search('Galaxy S25').suggestions, isEmpty);
+      expect(engine.complete('Galaxy S25'), contains('Galaxy S25'));
     });
   });
 }

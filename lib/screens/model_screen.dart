@@ -22,16 +22,23 @@ class ModelScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
-    final profile = scope.catalog.engine?.profileFor(model);
+    final engine = scope.catalog.engine;
+    final profile = engine?.profileFor(model);
+    final directoryModel = engine?.hasModel(model) ?? false;
 
     if (profile == null || profile.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(model, overflow: TextOverflow.ellipsis)),
         bottomNavigationBar: BannerAdSlot(ads: scope.ads),
-        body: const EmptyState(
-          icon: Icons.help_outline_rounded,
-          title: 'Nothing recorded yet',
-          message: 'No universal parts are listed for this model.',
+        body: EmptyState(
+          icon: directoryModel
+              ? Icons.inventory_2_outlined
+              : Icons.help_outline_rounded,
+          title: directoryModel ? 'Model added' : 'Nothing recorded yet',
+          message: directoryModel
+              ? 'This recent model is searchable, but no compatible universal '
+                  'parts have been verified for it yet.'
+              : 'No universal parts are listed for this model.',
         ),
       );
     }

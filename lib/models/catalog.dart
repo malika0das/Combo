@@ -16,12 +16,18 @@ class Catalog {
   final int version;
   final String updatedAt;
   final String notice;
+
+  /// Recent phones that are searchable even when no workshop-tested part list
+  /// exists yet. Compatibility groups remain the source of truth for fitment;
+  /// this directory only prevents new releases from being invisible.
+  final List<String> knownModels;
   final List<Category> categories;
 
   const Catalog({
     required this.version,
     required this.updatedAt,
     required this.notice,
+    this.knownModels = const [],
     required this.categories,
   });
 
@@ -29,19 +35,29 @@ class Catalog {
         version: json['version'] is num ? (json['version'] as num).toInt() : 0,
         updatedAt: _string(json['updatedAt']),
         notice: _string(json['notice']),
+        knownModels: (json['knownModels'] is List
+                ? (json['knownModels'] as List)
+                : const [])
+            .map((e) => e is String ? e.trim() : '')
+            .where((model) => model.isNotEmpty)
+            .toSet()
+            .toList(growable: false),
         categories: _objectList(json['categories'])
             .map(Category.fromJson)
             .toList(growable: false),
       );
 
-  /// Total model entries in the catalog. This intentionally counts a model
-  /// once per compatibility list: the number tells a technician how much
-  /// repair coverage is available, not how many distinct phone names exist.
+  /// Total compatibility references in the catalog. This intentionally counts
+  /// a model once per compatibility list: the number tells a technician how
+  /// much repair coverage is available, not how many distinct phone names
+  /// exist. Directory-only names are exposed separately through [knownModels].
   int get modelCount =>
       categories.fold(0, (sum, category) => sum + category.modelCount);
 
   int get groupCount =>
       categories.fold(0, (sum, category) => sum + category.groupCount);
+
+  int get knownModelCount => knownModels.length;
 
   /// A newer remote file is only safe to adopt when it contains real lists.
   /// This prevents a truncated or schema-shifted response from replacing a

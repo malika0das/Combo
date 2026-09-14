@@ -110,7 +110,8 @@ lib/
   screens/               home, category/brand, group detail, search, saved, settings, policy
   widgets/               highlight_text.dart, banner_ad_slot.dart
 assets/data/catalog.json bundled offline catalog (generated)
-tools/raw/*.txt          plain-text source lists (one group per line)
+tools/raw/*.txt          plain-text source lists (groups plus the recent model directory)
+tools/raw/models_current.txt  recent 2024–2026 model names without fitment claims
 tools/build_catalog.py   regenerates assets/data/catalog.json from tools/raw/
 store/                   Play listing, data safety, privacy policy, terms, icon source
 ```
@@ -164,9 +165,12 @@ flutter test
 
 ## Updating the bundled data
 
-The offline catalog ships with **1,174 universal lists covering 5,675 phone
-models** across 5 categories (Combo/Display, Battery, Tempered Glass, CC/Sub
-Board, Mobile Cover).
+The offline catalog ships with **1,174 universal lists covering 5,675
+compatibility references** across 5 categories (Combo/Display, Battery,
+Tempered Glass, CC/Sub Board, Mobile Cover). It also includes a de-duplicated
+directory of **239 recent 2024–2026 phone names** whose part compatibility has
+not yet been verified. Directory-only models are searchable and clearly shown
+as awaiting a tested part mapping; they are never presented as compatible.
 
 Edit the plain-text sources in `tools/raw/` and regenerate:
 
@@ -180,6 +184,9 @@ Formats:
   models comma separated. Trailing descriptors such as `Punch Hole LCD` are
   detected automatically and stored as the group note.
 - `battery_*.txt` — `Battery code|Model, Model, Model` per line.
+- `models_current.txt` — one recent model per line; comments beginning with `#`
+  record manufacturer sources. The builder normalizes and de-duplicates these
+  names, then removes names already covered by a compatibility group.
 - Lines starting with `Coming Soon` are skipped.
 
 To push an update without a Play release, host the generated JSON at

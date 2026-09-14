@@ -19,6 +19,14 @@ void main() {
     expect(catalog.groupCount, greaterThan(900));
   });
 
+  test('recent model directory is normalized and de-duplicated', () {
+    expect(catalog.knownModelCount, greaterThan(100));
+    final keys = catalog.knownModels.map((m) => m.toLowerCase()).toList();
+    expect(keys.toSet().length, keys.length);
+    expect(catalog.knownModels, contains('Galaxy S25'));
+    expect(catalog.knownModels, contains('iPhone 18 Pro'));
+  });
+
   test('group codes are unique (saved-list keys depend on this)', () {
     final codes = <String>[];
     for (final c in catalog.categories) {

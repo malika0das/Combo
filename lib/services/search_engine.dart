@@ -36,10 +36,14 @@ class SearchEngine {
     'rn': 'redmi note',
     'mi': 'xiaomi',
     'note': 'note',
-    'sam': 'samsung',
-    'sammy': 'samsung',
-    'samsang': 'samsung',
-    'samsun': 'samsung',
+    // The catalog normalizes both "Samsung A55" and "Samsung Galaxy A55"
+    // to the retail family name "Galaxy A55". Keep the common workshop
+    // shorthands working against that canonical form.
+    'sam': 'galaxy',
+    'sammy': 'galaxy',
+    'samsung': 'galaxy',
+    'samsang': 'galaxy',
+    'samsun': 'galaxy',
     'vivi': 'vivo',
     'vivp': 'vivo',
     'opo': 'oppo',
@@ -118,6 +122,15 @@ class SearchEngine {
         }
       }
     }
+
+    // The recent model directory deliberately has no fake compatibility entry.
+    // Registering it here makes it available to autocomplete and the A–Z
+    // browser while profileFor still returns an empty, honest parts list.
+    for (final model in catalog.knownModels) {
+      final normal = normalize(model);
+      if (normal.isEmpty) continue;
+      _models.putIfAbsent(normal, () => _ModelRef(model, normal));
+    }
   }
 
   /// Every distinct model name in the catalog, sorted for the A–Z browser.
@@ -150,6 +163,15 @@ class SearchEngine {
   }
 
   static String compact(String normalized) => normalized.replaceAll(' ', '');
+
+  /// Accept legacy workshop spellings after the catalog canonicalized Samsung
+  /// names to their retail Galaxy family ("Samsung A10" -> "Galaxy A10").
+  static String _modelKey(String input) {
+    final normal = normalize(input);
+    if (!normal.startsWith('samsung ')) return normal;
+    final tail = normal.substring('samsung '.length).trim();
+    return tail.startsWith('galaxy ') ? tail : 'galaxy $tail';
+  }
 
   /// Distinct 3-character windows of [packed], used to build and probe the
   /// inverted index.
@@ -383,7 +405,9 @@ class SearchEngine {
 
     final result = SearchResult(
       hits: hits.length > limit ? hits.sublist(0, limit) : hits,
-      suggestions: hits.isEmpty ? suggest(rawQuery) : const [],
+      suggestions: hits.isEmpty && !hasModel(normal)
+          ? suggest(rawQuery)
+          : const [],
       scopedCategoryId: scope,
       fuzzy: usedFuzzy,
     );
@@ -464,7 +488,7 @@ class SearchEngine {
 
   /// Every part, in every category, that fits one specific model.
   ModelProfile profileFor(String model) {
-    final normal = normalize(model);
+    final normal = _modelKey(model);
     final parts = <ModelPart>[];
     final siblings = <String, String>{};
     for (final i in _byModel[normal] ?? const <int>[]) {
@@ -482,7 +506,7 @@ class SearchEngine {
     return ModelProfile(model: display, parts: parts, siblings: siblingList);
   }
 
-  bool hasModel(String model) => _models.containsKey(normalize(model));
+  bool hasModel(String model) => _models.containsKey(_modelKey(model));
 }
 
 class _Entry {

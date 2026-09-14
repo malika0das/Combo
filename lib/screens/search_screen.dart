@@ -279,6 +279,7 @@ class _SearchScreenState extends State<SearchScreen> {
     List<Category> categories,
   ) {
     final filteredHits = _filteredHits;
+    final directoryModel = _lastSearchedEngine?.hasModel(_query) ?? false;
     return !hasQuery
         ? _Tips(
             onPick: (q) {
@@ -304,7 +305,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   Gap.lg,
                   Text(
-                    _result.suggestions.isEmpty
+                    directoryModel
+                        ? 'Model found — parts pending'
+                        : _result.suggestions.isEmpty
                         ? 'Nothing found yet'
                         : 'Close, but not exact',
                     textAlign: TextAlign.center,
@@ -312,10 +315,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   Gap.sm,
                   Text(
-                    InsightService.emptyMessage(
-                      _query.trim(),
-                      _result.suggestions.isNotEmpty,
-                    ),
+                    directoryModel
+                        ? 'This recent model is in the directory, but no compatible '
+                            'universal parts have been verified for it yet.'
+                        : InsightService.emptyMessage(
+                            _query.trim(),
+                            _result.suggestions.isNotEmpty,
+                          ),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
