@@ -8,8 +8,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 ///
 /// Google test unit IDs are used by default so the app never serves live ads
 /// during development (serving live ads on a dev build is an AdMob policy
-/// violation). Replace the `real*` constants with your own unit IDs and build
-/// with `--dart-define=USE_REAL_ADS=true` for release.
+/// violation). Provide live unit IDs through the documented `--dart-define`
+/// inputs and build with `--dart-define=USE_REAL_ADS=true` for release.
 class AdIds {
   static const bool useReal = bool.fromEnvironment(
     'USE_REAL_ADS',
@@ -94,12 +94,13 @@ class AdsService extends ChangeNotifier {
   bool get initialized => _initialized && _canRequestAds;
 
   /// Whether to show the "Privacy options" entry in Settings. Google requires
-  /// a persistent way for EEA/UK users to change their consent choice.
+  /// a persistent way for users in regulated regions to change consent.
   bool get privacyOptionsRequired => _privacyOptionsRequired;
 
   /// Gathers GDPR/ePrivacy consent through Google's User Messaging Platform
-  /// before any ad is requested. Serving ads in the EEA or UK without this is
-  /// an AdMob policy violation and a common Play review rejection.
+  /// before any ad is requested. Serving ads in the EEA, UK or Switzerland
+  /// without this is an AdMob policy violation and a common Play review
+  /// rejection.
   Future<void> _gatherConsent() async {
     final completer = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
