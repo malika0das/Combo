@@ -212,8 +212,9 @@ class VerifyNotice extends StatelessWidget {
           Expanded(
             child: Text(
               text ??
-                  'Always verify connector type, flex length and frame fit '
-                      'physically before fitting the part.',
+                  'Always verify connector pin count, pitch, latch, flex length, '
+                      'frame revision and panel type physically before fitting '
+                      'the part.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

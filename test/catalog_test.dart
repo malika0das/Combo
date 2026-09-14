@@ -23,8 +23,11 @@ void main() {
     expect(catalog.knownModelCount, greaterThan(100));
     final keys = catalog.knownModels.map((m) => m.toLowerCase()).toList();
     expect(keys.toSet().length, keys.length);
-    expect(catalog.knownModels, contains('Galaxy S25'));
+    // Galaxy S25 now has a sourced OCA listing, so it is a compatibility
+    // model rather than a directory-only pending model. Keep an actually
+    // un-mapped recent release in the directory assertion.
     expect(catalog.knownModels, contains('iPhone 18 Pro'));
+    expect(catalog.knownModels, isNot(contains('Galaxy S25')));
   });
 
   test('group codes are unique (saved-list keys depend on this)', () {
@@ -60,7 +63,49 @@ void main() {
 
   test('all expected categories are present', () {
     final ids = catalog.categories.map((c) => c.id).toSet();
-    expect(ids, containsAll(<String>['combo', 'battery', 'tempered', 'ccboard', 'case']));
+    expect(
+      ids,
+      containsAll(<String>[
+        'combo',
+        'battery',
+        'frame',
+        'powerflex',
+        'displayconnector',
+        'oca',
+        'tempered',
+        'ccboard',
+        'case',
+      ]),
+    );
+  });
+
+  test('new repair-part categories and compatibility labels are present', () {
+    final byId = {
+      for (final category in catalog.categories) category.id: category,
+    };
+    expect(
+      byId.keys,
+      containsAll(<String>['frame', 'powerflex', 'displayconnector', 'oca']),
+    );
+    expect(byId['frame']!.name, 'Frame / Middle Frame');
+    expect(byId['powerflex']!.name, 'Power / Volume Flex');
+    expect(byId['displayconnector']!.name, 'Display Connector');
+    expect(byId['oca']!.name, 'Touch / OCA Glass');
+    expect(byId['ccboard']!.name, 'Charging Sub Board');
+    expect(byId['case']!.name, 'Back Cover');
+    expect(byId['tempered']!.name, 'Tempered / Screen Guard');
+
+    bool hasModel(String categoryId, String model) {
+      final normal = model.toLowerCase();
+      return byId[categoryId]!.brands
+          .expand((brand) => brand.groups)
+          .any((group) => group.models.any((m) => m.toLowerCase() == normal));
+    }
+
+    expect(hasModel('frame', 'iPhone 13'), isTrue);
+    expect(hasModel('powerflex', 'Galaxy A53 5G'), isTrue);
+    expect(hasModel('displayconnector', 'Vivo V21 5G'), isTrue);
+    expect(hasModel('oca', 'Galaxy S25'), isTrue);
   });
 
   test('battery groups expose a battery code as title', () {

@@ -47,10 +47,10 @@ Terms of Use & Disclaimer — Combo Universal
 Last updated: 7 September 2026
 
 1. Purpose
-Combo Universal provides reference information about which mobile display, combo, battery, tempered glass, sub-board and frame parts are commonly interchangeable between models.
+Combo Universal provides reference information about which mobile display, combo, battery, frame, power/volume flex, charging sub-board, display connector, back cover, tempered glass and Touch/OCA glass parts are commonly interchangeable between models.
 
 2. Accuracy disclaimer
-The compatibility data is community contributed and provided "as is" for guidance only. Manufacturers change panels, connectors and flex layouts within the same model name. Always physically verify the connector type, flex length, frame fit and touch calibration before fitting a part.
+The compatibility data is community contributed and provided "as is" for guidance only. Manufacturers change panels, connectors and flex layouts within the same model name. Always physically verify connector pin count, pitch, latch, flex length, frame revision, panel type and touch calibration before fitting a part. Touch / OCA glass is a lamination part, not tempered screen-guard glass.
 
 3. No liability
 We are not liable for any loss, damaged part, damaged device or business loss arising from the use of this information. The final decision to fit a part is yours.

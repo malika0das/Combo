@@ -3,10 +3,11 @@
 
 Source format
 -------------
-Combo / glass / CC board / case files: one group per line, comma separated
-models. Trailing descriptive fragments ("Punch Hole LCD Screen", "Notch
-Combo", "Side Flex", ...) are detected and moved into the group note instead
-of being treated as phone models.
+Combo / glass / CC board / case / frame / powerflex / displayconnector / OCA
+files: one group per line, comma separated models. Trailing descriptive
+fragments ("Punch Hole LCD Screen", "Notch Combo", "Side Flex", ...) are
+detected and moved into the group note instead of being treated as phone
+models.
 
 Battery files: `Battery code|Model, Model, Model` per line.
 
@@ -145,7 +146,7 @@ def read_model_directory() -> list[str]:
 
 def build_simple_brand(prefix: str, file_key: str, brand_id: str, brand_name: str,
                        quality: str) -> dict | None:
-    """Groups from a comma-separated file (combo / glass / cc / case)."""
+    """Groups from a comma-separated compatibility source file."""
     lines = read_lines(f"{prefix}_{file_key}.txt")
     if not lines:
         return None
@@ -246,6 +247,48 @@ def main() -> None:
         "brands": battery_brands,
     })
 
+    frame = build_simple_brand(
+        "frame", "all", "all", "All Brands", "Middle Frame / Housing · verify revision")
+    if frame:
+        categories.append({
+            "id": "frame",
+            "name": "Frame / Middle Frame",
+            "icon": "frame",
+            "brands": [frame],
+        })
+
+    powerflex = build_simple_brand(
+        "powerflex", "all", "all", "All Brands",
+        "Power / Volume Button Flex · verify revision")
+    if powerflex:
+        categories.append({
+            "id": "powerflex",
+            "name": "Power / Volume Flex",
+            "icon": "flex",
+            "brands": [powerflex],
+        })
+
+    displayconnector = build_simple_brand(
+        "displayconnector", "all", "all", "All Brands",
+        "Display Connector / LCD Flex · verify pin/pitch/revision")
+    if displayconnector:
+        categories.append({
+            "id": "displayconnector",
+            "name": "Display Connector",
+            "icon": "connector",
+            "brands": [displayconnector],
+        })
+
+    oca = build_simple_brand(
+        "oca", "all", "all", "All Brands", "Touch / OCA Glass · not tempered")
+    if oca:
+        categories.append({
+            "id": "oca",
+            "name": "Touch / OCA Glass",
+            "icon": "oca",
+            "brands": [oca],
+        })
+
     glass_brands = []
     normal = build_simple_brand("glass", "normal", "normal", "Normal Tempered Glass",
                                 "2.5D Full Glue Tempered Glass")
@@ -260,20 +303,20 @@ def main() -> None:
     })
 
     cc_brands = [b for b in (
-        build_simple_brand("cc", key, key, name, "CC / Sub Board")
+        build_simple_brand("cc", key, key, name, "Charging Sub Board")
         for key, name in CC_BRANDS) if b]
     categories.append({
         "id": "ccboard",
-        "name": "CC / Sub Board",
+        "name": "Charging Sub Board",
         "icon": "board",
         "brands": cc_brands,
     })
 
-    case = build_simple_brand("case", "all", "all", "All Brands", "Back Cover / Case")
+    case = build_simple_brand("case", "all", "all", "All Brands", "Back Cover")
     if case:
         categories.append({
             "id": "case",
-            "name": "Mobile Cover / Case",
+            "name": "Back Cover",
             "icon": "case",
             "brands": [case],
         })
@@ -305,7 +348,9 @@ def main() -> None:
         ),
         "notice": (
             "Compatibility data is community contributed. Always physically verify "
-            "connector, flex length and frame fit before fitting a part."
+            "connector, flex length, frame revision and panel type before fitting "
+            "a part. Touch / OCA Glass is a lamination part, not Tempered / Screen "
+            "Guard glass; display connectors and flexes are not universal."
         ),
         # Directory names are intentionally separate from compatibility groups:
         # listing a newly released phone must never imply that a part has been

@@ -648,7 +648,10 @@ class _RotatingHintState extends State<_RotatingHint> {
   static const _hints = [
     'Search a model, part or code',
     'Try "Redmi 9A battery"',
-    'Try "vivo y17 glass"',
+    'Try "iPhone 13 middle frame"',
+    'Try "A53 power volume flex"',
+    'Try "V21 display connector"',
+    'Try "vivo y17 OCA glass"',
     'Try "BN4A"',
   ];
 

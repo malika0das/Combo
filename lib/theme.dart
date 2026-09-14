@@ -338,6 +338,12 @@ Color accentFor(String key, ColorScheme scheme) {
       return const Color(0xFFE8618C);
     case 'frame':
       return const Color(0xFFF0A500);
+    case 'flex':
+      return const Color(0xFFE76F51);
+    case 'connector':
+      return const Color(0xFF2E86AB);
+    case 'oca':
+      return const Color(0xFF5B6EE1);
     default:
       return scheme.primary;
   }
@@ -353,6 +359,12 @@ IconData iconFor(String key) {
       return Icons.developer_board_rounded;
     case 'frame':
       return Icons.crop_square_rounded;
+    case 'flex':
+      return Icons.power_rounded;
+    case 'connector':
+      return Icons.link_rounded;
+    case 'oca':
+      return Icons.touch_app_rounded;
     case 'case':
       return Icons.phonelink_ring_rounded;
     default:

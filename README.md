@@ -1,6 +1,6 @@
 # Combo Universal — Flutter Android App
 
-Offline-first universal compatibility list (combo/display, battery, tempered glass, CC board, frame) for mobile repair technicians. 100% self-contained: no hardcoded external URLs, no third-party server, nothing to infringe.
+Offline-first universal compatibility list (combo/display, battery, frame, power/volume flex, charging sub-board, display connector, back cover, tempered glass and Touch/OCA glass) for mobile repair technicians. 100% self-contained: no hardcoded external URLs, no third-party server, nothing to infringe.
 
 ## Features
 - **Smart highlight search** across every category at once, with debounce and exact-match ranking.
@@ -16,11 +16,11 @@ Offline-first universal compatibility list (combo/display, battery, tempered gla
 - Ignores spacing and punctuation — `redmi9a`, `Redmi 9-A` and `REDMI  9a` are the same query.
 - Brand shorthand and common misspellings are expanded (`rn9pro`, `samsang a10`, `1+`, `moto`).
 - Typo tolerance: an exact/substring pass runs first, and only if nothing matches does it fall back to edit-distance matching, so correct spellings never get noisy results.
-- Part keywords auto-scope the query — `redmi 9a battery` searches only the Battery category. Filter chips override it.
+- Part keywords auto-scope the query — `redmi 9a battery`, `A53 power volume flex`, `V21 display connector` and `Galaxy S25 OCA glass` search their specific categories. Filter chips override it.
 - Also matches group codes and battery part numbers (`BN4A`, `EB-BA546ABY`).
 - "Did you mean" suggestions when nothing matches, and model autocomplete chips above the results.
 
-**Model profile** — tap any model to see every universal part that fits it (combo, battery, glass, board, cover) plus every phone that shares those parts. Share or copy the whole parts sheet.
+**Model profile** — tap any model to see every sourced part mapping that fits it (combo, battery, frame, flex, connector, OCA, tempered glass, charging board or back cover) plus every phone that shares those parts. Directory-only models remain visible but keep an honest pending/no-fitment state. Share or copy the whole parts sheet.
 
 **Compare models** — add two or more phones and instantly see which categories have a single part covering all of them. Decide what to stock before you buy.
 
@@ -72,8 +72,8 @@ Run `bash tools/fetch_fonts.sh` once to populate `assets/google_fonts/`.
 
 **Colour** — a deep indigo-blue brand seed with an amber accent for search
 highlights. Each part category carries its own accent (`accentFor`) so the home
-grid reads as five distinct destinations: battery green, glass cyan, board
-violet, cover pink, display blue.
+grid reads as distinct destinations: battery green, glass cyan, board violet, cover pink,
+frame amber, power-flex coral, connector blue and OCA indigo.
 
 **Shared primitives** (`lib/widgets/ui.dart`) keep every screen consistent:
 `CodeChip` (tap-to-copy monospaced part code), `SoftBadge`, `SectionHeader`,
@@ -165,12 +165,14 @@ flutter test
 
 ## Updating the bundled data
 
-The offline catalog ships with **1,174 universal lists covering 5,675
-compatibility references** across 5 categories (Combo/Display, Battery,
-Tempered Glass, CC/Sub Board, Mobile Cover). It also includes a de-duplicated
-directory of **239 recent 2024–2026 phone names** whose part compatibility has
-not yet been verified. Directory-only models are searchable and clearly shown
-as awaiting a tested part mapping; they are never presented as compatible.
+The offline catalog currently ships with **1,420 universal lists covering 5,977
+compatibility references** across 9 categories: Combo/Display, Battery, Frame /
+Middle Frame, Power / Volume Flex, Display Connector, Touch / OCA Glass,
+Tempered / Screen Guard, Charging Sub Board and Back Cover. It also includes a
+de-duplicated directory of **226 recent 2024–2026 phone names** whose part
+compatibility has not yet been verified. Directory-only models are searchable
+and clearly shown as awaiting a tested part mapping; they are never presented
+as compatible.
 
 Edit the plain-text sources in `tools/raw/` and regenerate:
 
@@ -180,9 +182,12 @@ python3 tools/build_catalog.py
 
 Formats:
 
-- `combo_*.txt`, `glass_*.txt`, `cc_*.txt`, `case_all.txt` — one group per line,
-  models comma separated. Trailing descriptors such as `Punch Hole LCD` are
-  detected automatically and stored as the group note.
+- `combo_*.txt`, `glass_*.txt`, `cc_*.txt`, `case_all.txt`, `frame_all.txt`,
+  `powerflex_all.txt`, `displayconnector_all.txt` and `oca_all.txt` — one group
+  per line, models comma separated. Trailing descriptors such as `Punch Hole
+  LCD` are detected automatically and stored as the group note. The new raw
+  lists retain supplier URLs and keep display connectors/flexes model-specific;
+  OCA glass is intentionally separate from Tempered / Screen Guard glass.
 - `battery_*.txt` — `Battery code|Model, Model, Model` per line.
 - `models_current.txt` — one recent model per line; comments beginning with `#`
   record manufacturer sources. The builder normalizes and de-duplicates these

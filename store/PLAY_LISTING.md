@@ -6,16 +6,16 @@
 Alternatives: `Universal Combo List 2026` (25) · `Combo Support: Universal List` (29)
 
 ## Short description (80 chars max)
-`Universal combo, display, battery & tempered glass compatibility list 2026.` (74)
+`Universal combo, battery, frame, flex, OCA & glass compatibility list.` (70)
 
 ## Full description (4000 chars max)
 
-Combo Universal is a fast, offline-first compatibility reference for mobile repair technicians, spare-part wholesalers and phone service centres. Search any model name and instantly see every other phone that uses the same display, combo, battery, tempered glass, CC/sub board or frame.
+Combo Universal is a fast, offline-first compatibility reference for mobile repair technicians, spare-part wholesalers and phone service centres. Search any model name and instantly see every other phone that uses the same display, combo, battery, middle frame, power/volume flex, charging sub-board, display connector, tempered glass, Touch/OCA glass or back cover.
 
 WHY TECHNICIANS USE IT
 • Type a model — matching models are highlighted instantly.
 • Spelling does not matter: "redmi9a", "rn9pro" and "samsang a10" all find the right part.
-• Add "battery", "glass" or "board" to a search to jump straight to that part type.
+• Add "battery", "middle frame", "power flex", "display connector", "OCA glass", "back cover" or "charging sub board" to a search to jump straight to that part type.
 • Tap any phone to see every universal part that fits it, on one screen.
 • Compare two phones to check whether one part covers both before you buy stock.
 • Build an order list with your own notes and send it to your supplier on WhatsApp.
@@ -27,8 +27,12 @@ WHAT'S INSIDE
 • Folder / Display / Combo universal list
 • Battery universal list
 • Tempered glass & screen protector universal list
-• CC board / sub board universal list
+• Charging sub-board / CC board universal list
+• Back cover list
 • Frame / middle frame list
+• Power / volume button flex list
+• Exact-model display connector / LCD flex references
+• Touch / OCA glass list, kept separate from tempered screen guards
 • Compatibility notes: connector type, panel size, frame differences
 
 BRANDS COVERED
@@ -48,14 +52,14 @@ WHO IT'S FOR
 Mobile repair shops, phone service centres, LCD/combo wholesalers, spare parts dealers and mobile technicians in India and worldwide.
 
 IMPORTANT
-Compatibility data is community contributed and provided for guidance only. Manufacturers change panels and connectors within the same model name. Always physically verify connector type, flex length and frame fit before fitting a part.
+Compatibility data is community contributed and provided for guidance only. Manufacturers change panels, connectors and flex layouts within the same model name. Always physically verify connector pin count, pitch, latch, flex length, frame revision and panel type before fitting a part. Touch / OCA glass is a lamination part, not tempered screen-guard glass.
 
 Brand names are trademarks of their respective owners. This app is an independent reference tool and is not affiliated with or endorsed by any manufacturer.
 
 Feedback and new list contributions: WhatsApp +91 72057 02493
 
 ## Keyword focus (used naturally above — do not keyword-stuff the title)
-universal combo list, combo universal, lcd combo list, display compatibility, mobile spare parts, battery universal list, tempered glass universal, sub board list, mobile repair tool, folder list 2026
+universal combo list, combo universal, lcd combo list, display compatibility, mobile spare parts, battery universal list, middle frame list, power volume flex, display connector, OCA glass, back cover list, tempered glass universal, sub board list, mobile repair tool, folder list 2026
 
 ## Store setup checklist
 - Category: Tools (alt: Business)

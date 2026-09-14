@@ -1,3 +1,11 @@
+# Charging Sub Board / CC references are retained under the legacy ccboard ID.
+# Category terminology and exact supplier examples researched from:
+# https://www.isparehub.com/categories/charging-sub-board
+# https://m.akinfotools.com/details/1622
+# https://www.sunsky-online.com/p/EDA004123206/For-OPPO-K9s-K10-4G-Realme-Q3s-Realme-Q3t-Realme-V25-Original-Charging-Port-Board.htm
+# Exact supplier cross-compatibility examples retained below.
+Realme C2, Oppo A1K
+Oppo K9s, Oppo K10 4G, Realme Q3s, Realme Q3t, Realme V25
 Realme 7, Realme Narzo 20 Pro
 Realme 11 4G, Realme 11 5G, Realme C67 5G, Realme 11X, Realme 11X 5G
 Oppo Reno 7 4G, Oppo Reno 7 5G, Oppo F21 Pro 4G, Oppo F21 Pro 5G, Oppo Find X5 Lite

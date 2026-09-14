@@ -74,6 +74,9 @@ class SearchEngine {
   static const Map<String, String> categoryHints = <String, String>{
     'combo': 'combo',
     'folder': 'combo',
+    // A bare display/lcd query still means the existing combo category. The
+    // phrase-aware detector below routes "display connector" and "lcd flex"
+    // to the new, model-specific connector category.
     'display': 'combo',
     'lcd': 'combo',
     'screen': 'combo',
@@ -94,7 +97,27 @@ class SearchEngine {
     'cover': 'case',
     'case': 'case',
     'back': 'case',
+    'backcover': 'case',
     'pouch': 'case',
+    'frame': 'frame',
+    'middle': 'frame',
+    'middleframe': 'frame',
+    'housing': 'frame',
+    'power': 'powerflex',
+    'powerflex': 'powerflex',
+    'volume': 'powerflex',
+    'volumeflex': 'powerflex',
+    'button': 'powerflex',
+    'flex': 'powerflex',
+    'connector': 'displayconnector',
+    'displayconnector': 'displayconnector',
+    'lcdflex': 'displayconnector',
+    'subboard': 'ccboard',
+    'chargingboard': 'ccboard',
+    'oca': 'oca',
+    'ocaglass': 'oca',
+    'touch': 'oca',
+    'touchglass': 'oca',
   };
 
   void _build() {
@@ -295,10 +318,44 @@ class SearchEngine {
   }
 
   /// Reads a part keyword out of the query ("redmi 9a battery" -> 'battery').
+  ///
+  /// Connector and flex are deliberately phrase-aware. A bare "display" is
+  /// still the established combo search, while "display connector" and "lcd
+  /// flex" must reach their own exact-model compatibility lists. Likewise,
+  /// "touch glass" means OCA glass, not the separate tempered/screen-guard
+  /// category.
   String? detectCategory(String rawQuery) {
-    for (final token in tokenize(normalize(rawQuery))) {
+    final normal = normalize(rawQuery);
+    final has = (String phrase) =>
+        RegExp(r'(^| )' + RegExp.escape(phrase) + r'( |$)').hasMatch(normal);
+
+    String? existing(String id) =>
+        catalog.categories.any((c) => c.id == id) ? id : null;
+
+    if ((has('display connector') ||
+            has('lcd connector') ||
+            has('display flex') ||
+            has('lcd flex')) &&
+        catalog.categories.any((c) => c.id == 'displayconnector')) {
+      return 'displayconnector';
+    }
+    if ((has('power flex') ||
+            has('volume flex') ||
+            has('power volume') ||
+            has('power button') ||
+            has('volume button')) &&
+        catalog.categories.any((c) => c.id == 'powerflex')) {
+      return 'powerflex';
+    }
+    if ((has('touch glass') || has('oca glass')) &&
+        catalog.categories.any((c) => c.id == 'oca')) {
+      return 'oca';
+    }
+
+    for (final token in tokenize(normal)) {
       final hit = categoryHints[token];
-      if (hit != null && catalog.categories.any((c) => c.id == hit)) return hit;
+      final resolved = hit == null ? null : existing(hit);
+      if (resolved != null) return resolved;
     }
     return null;
   }

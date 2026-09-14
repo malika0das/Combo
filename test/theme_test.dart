@@ -84,7 +84,17 @@ void main() {
   group('category accents', () {
     test('each part type gets a distinct accent', () {
       final scheme = buildTheme(Brightness.light).colorScheme;
-      final keys = ['display', 'battery', 'glass', 'board', 'case'];
+      final keys = [
+        'display',
+        'battery',
+        'glass',
+        'board',
+        'case',
+        'frame',
+        'flex',
+        'connector',
+        'oca',
+      ];
       final colors = keys.map((k) => accentFor(k, scheme)).toList();
       expect(colors.toSet().length, keys.length);
     });
@@ -95,14 +105,35 @@ void main() {
     });
 
     test('every category icon resolves', () {
-      for (final key in ['display', 'battery', 'glass', 'board', 'frame', 'case', '']) {
+      for (final key in [
+        'display',
+        'battery',
+        'glass',
+        'board',
+        'frame',
+        'flex',
+        'connector',
+        'oca',
+        'case',
+        '',
+      ]) {
         expect(iconFor(key), isA<IconData>());
       }
     });
   });
 
   group('pastel tiles', () {
-    const accents = ['display', 'battery', 'glass', 'board', 'case'];
+    const accents = [
+      'display',
+      'battery',
+      'glass',
+      'board',
+      'case',
+      'frame',
+      'flex',
+      'connector',
+      'oca',
+    ];
 
     /// WCAG contrast ratio between two opaque colours.
     double contrast(Color a, Color b) {

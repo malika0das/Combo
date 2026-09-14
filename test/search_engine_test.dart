@@ -67,6 +67,41 @@ void main() {
       expect(result.hits.every((h) => h.category.id == 'combo'), isTrue);
     });
 
+    test('new part keywords resolve to their own categories', () {
+      expect(engine.detectCategory('iPhone 13 middle frame'), 'frame');
+      expect(engine.detectCategory('Galaxy A53 power volume flex'), 'powerflex');
+      expect(
+          engine.detectCategory('V21 display connector'), 'displayconnector');
+      expect(engine.detectCategory('Galaxy S25 OCA glass'), 'oca');
+      expect(engine.detectCategory('Vivo V17 charging sub board'), 'ccboard');
+      expect(engine.detectCategory('Oppo F15 back cover'), 'case');
+      expect(engine.detectCategory('Redmi 9A tempered glass'), 'tempered');
+      expect(engine.detectCategory('V21 lcdflex'), 'displayconnector');
+      expect(engine.detectCategory('Galaxy S25 ocaglass'), 'oca');
+      expect(engine.detectCategory('Oppo F15 backcover'), 'case');
+      // A bare display still means combo; connector requires the explicit
+      // phrase so existing display search behaviour does not change.
+      expect(engine.detectCategory('Redmi 9A display'), 'combo');
+    });
+
+    test('new part searches stay exact-model scoped', () {
+      final cases = <String, String>{
+        'iPhone 13 middle frame': 'frame',
+        'Galaxy A53 power volume flex': 'powerflex',
+        'V21 display connector': 'displayconnector',
+        'Galaxy S25 OCA glass': 'oca',
+        'Vivo V17 charging sub board': 'ccboard',
+        'Oppo F15 back cover': 'case',
+      };
+      for (final entry in cases.entries) {
+        final result = engine.search(entry.key);
+        expect(result.hits, isNotEmpty, reason: entry.key);
+        expect(result.scopedCategoryId, entry.value, reason: entry.key);
+        expect(result.hits.every((h) => h.category.id == entry.value), isTrue,
+            reason: entry.key);
+      }
+    });
+
     test('results are capped', () {
       expect(engine.search('vivo', limit: 10).hits.length, lessThanOrEqualTo(10));
     });
@@ -121,11 +156,13 @@ void main() {
     });
 
     test('directory-only models are searchable without fake part hits', () {
-      expect(engine.hasModel('Galaxy S25'), isTrue);
-      expect(engine.profileFor('Galaxy S25').isEmpty, isTrue);
-      expect(engine.search('Galaxy S25').hits, isEmpty);
-      expect(engine.search('Galaxy S25').suggestions, isEmpty);
-      expect(engine.complete('Galaxy S25'), contains('Galaxy S25'));
+      // Galaxy S25 has a sourced OCA mapping now; iPhone 18 Pro remains a
+      // directory-only recent release and must keep the pending state.
+      expect(engine.hasModel('iPhone 18 Pro'), isTrue);
+      expect(engine.profileFor('iPhone 18 Pro').isEmpty, isTrue);
+      expect(engine.search('iPhone 18 Pro').hits, isEmpty);
+      expect(engine.search('iPhone 18 Pro').suggestions, isEmpty);
+      expect(engine.complete('iPhone 18 Pro'), contains('iPhone 18 Pro'));
     });
   });
 }

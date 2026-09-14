@@ -1,0 +1,13 @@
+# Display connector / LCD-flex references researched from exact supplier listings:
+# https://www.sunsky-online.com/p/EDA004792202/For-vivo-V21-5G-OEM-LCD-Flex-Cable.htm
+# https://www.sunsky-online.com/p/SPS2362/LCD-Flex-Cable-for-OPPO-Realme-X7-5G.htm
+# https://www.sunsky-online.com/p/EDA004792203/For-vivo-X70-Pro-OEM-LCD-Flex-Cable.htm
+# The buying guides below explain why a connector cannot be treated as
+# universal; they are not used to create extra model mappings:
+# https://electronics.alibaba.com/buyingguides/mobile-phone-screen-connector-guide-repair-vs-replace
+# https://electronics.alibaba.com/buyingguides/lcd-flex-ribbon-cable-connector-guide
+# Verify pin count, pitch, ZIF geometry, latch direction, flex thickness and
+# revision physically before fitting any connector or LCD flex.
+Vivo V21 5G
+Realme X7 5G
+Vivo X70 Pro

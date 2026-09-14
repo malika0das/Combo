@@ -1,0 +1,57 @@
+# Power / volume button flex references researched from:
+# https://www.fixshop.eu/spare-parts-cell-phone-spare-parts-flex-cables-power-volume-button-flex-cable/
+# https://www.sunsky-online.com/p/EDA006026301/For-Realme-10-4G-OEM-Power-Button-&-Volume-Button-Flex-Cable.htm
+# The Sunsky listing also names the Realme 10/11/12/13/14, GT, P, C and
+# Narzo families shown below; confirm the exact revision and connector before fitting.
+Samsung Galaxy A02s
+Samsung Galaxy A11
+Samsung Galaxy A21s
+Samsung Galaxy A22 5G
+Samsung Galaxy A22
+Samsung Galaxy A31
+Samsung Galaxy A40
+Samsung Galaxy A41, Samsung Galaxy A31
+Samsung Galaxy M11
+Samsung Galaxy A53 5G
+Samsung Galaxy S20 FE
+Samsung Galaxy S22
+Xiaomi Redmi 9
+Xiaomi Redmi 9A
+Xiaomi Redmi Note 9
+Xiaomi Redmi Note 10 Pro
+Xiaomi Redmi Note 11S, Poco M4 Pro 4G
+Xiaomi Poco M5S, Redmi Note 10
+Xiaomi Mi 9
+Xiaomi Mi 10T, Xiaomi Mi 10T Pro
+Xiaomi Mi 11
+Realme 7i
+Realme C21
+Realme 8i
+Realme 8 Pro
+Realme 9i
+Realme 10 4G
+Realme 11 Pro
+Realme 12 5G, Realme 12X 5G
+Realme 12 Pro, Realme 12 Pro+
+Realme 13 Pro, Realme 13 Pro+
+Realme 14 Pro, Realme 14 Pro+
+Realme GT 7
+Realme P1, Realme P1 Pro
+Realme C61, Realme C63, Realme C65
+Realme Narzo 70, Realme Narzo 70 Pro
+Realme C31
+Realme C35
+Realme X
+Realme X2
+Realme X50 5G
+Realme X50 Pro 5G
+Realme X7
+Realme X7 Pro
+Realme GT 5G
+Realme GT Neo2
+Motorola Moto G6 Plus
+Motorola Moto G10
+Motorola One Vision
+iPhone 12, iPhone 12 Pro
+iPhone 13
+iPhone 13 Mini

@@ -560,7 +560,11 @@ class _Tips extends StatelessWidget {
     'Realme C11',
     'rn9pro',
     'Redmi 9A battery',
-    'Vivo Y17 glass',
+    'iPhone 13 middle frame',
+    'A53 power volume flex',
+    'V21 display connector',
+    'Vivo Y17 OCA glass',
+    'Oppo F15 back cover',
   ];
 
   @override
