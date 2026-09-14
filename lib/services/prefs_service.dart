@@ -9,6 +9,7 @@ class PrefsService extends ChangeNotifier {
   static const _darkKey = 'dark_mode';
   static const _consentKey = 'ads_personalized';
   static const _listKey = 'stock_list';
+  static const _qtyKey = 'stock_qty';
   static const _notesKey = 'group_notes';
   static const _fontKey = 'font_scale';
   static const _dismissedKey = 'dismissed_insights';
@@ -22,6 +23,7 @@ class PrefsService extends ChangeNotifier {
   bool _personalizedAds = false;
   List<String> _stock = const [];
   Map<String, String> _notes = const {};
+  Map<String, int> _qty = const {};
   double _fontScale = 1.0;
   List<String> _dismissed = const [];
 
@@ -35,6 +37,10 @@ class PrefsService extends ChangeNotifier {
 
   /// Free-text note the shop keeps against a part list (price, shelf, supplier).
   Map<String, String> get notes => _notes;
+
+  /// Pieces to order per queued list. Kept even when a list is temporarily
+  /// removed, so an accidental swipe + undo does not lose the count.
+  Map<String, int> get qty => _qty;
   double get fontScale => _fontScale;
 
   /// Ids of proactive suggestions the user has waved away.
@@ -48,6 +54,7 @@ class PrefsService extends ChangeNotifier {
     _personalizedAds = _prefs!.getBool(_consentKey) ?? false;
     _stock = _prefs!.getStringList(_listKey) ?? const [];
     _notes = _decodeNotes(_prefs!.getStringList(_notesKey) ?? const []);
+    _qty = _decodeQty(_prefs!.getStringList(_qtyKey) ?? const []);
     _fontScale = _prefs!.getDouble(_fontKey) ?? 1.0;
     _dismissed = _prefs!.getStringList(_dismissedKey) ?? const [];
     notifyListeners();
@@ -100,6 +107,20 @@ class PrefsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Pieces to order of [code]. Defaults to 1 for anything queued.
+  int qtyFor(String code) => _qty[code] ?? 1;
+
+  Future<void> setQty(String code, int qty) async {
+    final v = qty.clamp(1, 99);
+    if (_qty[code] == v) return;
+    final next = Map<String, int>.from(_qty);
+    next[code] = v;
+    _qty = next;
+    await _prefs?.setStringList(
+        _qtyKey, next.entries.map((e) => '${e.key}\u0000${e.value}').toList());
+    notifyListeners();
+  }
+
   String noteFor(String code) => _notes[code] ?? '';
 
   Future<void> setNote(String code, String note) async {
@@ -136,6 +157,18 @@ class PrefsService extends ChangeNotifier {
     for (final line in raw) {
       final i = line.indexOf('\u0000');
       if (i > 0) out[line.substring(0, i)] = line.substring(i + 1);
+    }
+    return out;
+  }
+
+  static Map<String, int> _decodeQty(List<String> raw) {
+    final out = <String, int>{};
+    for (final line in raw) {
+      final i = line.indexOf('\u0000');
+      if (i > 0) {
+        final v = int.tryParse(line.substring(i + 1));
+        if (v != null && v >= 1) out[line.substring(0, i)] = v.clamp(1, 99);
+      }
     }
     return out;
   }

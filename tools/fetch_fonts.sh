@@ -27,30 +27,40 @@ FILES=(
   "JetBrainsMono:500:JetBrainsMono-Medium.ttf"
 )
 
-# Static TTFs straight from the upstream Google Fonts repository.
-base_url() {
-  case "$1" in
-    Sora)          echo "https://raw.githubusercontent.com/google/fonts/main/ofl/sora/static" ;;
-    Inter)         echo "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/static" ;;
-    JetBrainsMono) echo "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/static" ;;
-    *) echo "" ;;
-  esac
-}
+# Upstream google/fonts now ships these families as single variable TTFs —
+# the old ofl/<family>/static/ directories are gone, so the per-weight URLs
+# above would 404. Fetch each variable font once and copy it to every static
+# filename google_fonts expects in asset mode (e.g. Sora-SemiBold.ttf).
+declare -A VAR_URL=(
+  [Sora]="https://raw.githubusercontent.com/google/fonts/main/ofl/sora/Sora%5Bwght%5D.ttf"
+  [Inter]="https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf"
+  [JetBrainsMono]="https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf"
+)
 
+for family in Sora Inter JetBrainsMono; do
+  var_file="$DEST/$family-Variable.ttf"
+  if [[ ! -s "$var_file" ]]; then
+    echo "fetch   $family variable font"
+    curl -fsSL --globoff "${VAR_URL[$family]}" -o "$var_file" || {
+      echo "WARNING: could not download $family — the app will fall back to" >&2
+      echo "         the platform font for that family." >&2
+      rm -f "$var_file"
+      continue
+    }
+  fi
+done
+
+# Copy the variable font to every static filename google_fonts looks up.
 for spec in "${FILES[@]}"; do
   family="${spec%%:*}"
   file="${spec##*:}"
-  url="$(base_url "$family")/$file"
-  if [[ -s "$DEST/$file" ]]; then
-    echo "have    $file"
-    continue
+  var_file="$DEST/$family-Variable.ttf"
+  if [[ -s "$var_file" ]]; then
+    cp -f "$var_file" "$DEST/$file"
+    echo "have    $file (variable instance of $family)"
+  else
+    echo "missing $file"
   fi
-  echo "fetch   $file"
-  curl -fsSL "$url" -o "$DEST/$file" || {
-    echo "WARNING: could not download $file — the app will fall back to the" >&2
-    echo "         platform font for that weight." >&2
-    rm -f "$DEST/$file"
-  }
 done
 
 # Licences must ship with the fonts. The OFL requires the FULL licence text to

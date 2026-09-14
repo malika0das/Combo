@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -12,28 +11,48 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 /// violation). Replace the `real*` constants with your own unit IDs and build
 /// with `--dart-define=USE_REAL_ADS=true` for release.
 class AdIds {
-  static const bool useReal =
-      bool.fromEnvironment('USE_REAL_ADS', defaultValue: false);
+  static const bool useReal = bool.fromEnvironment(
+    'USE_REAL_ADS',
+    defaultValue: false,
+  );
 
   // TODO: replace with your real AdMob unit IDs before publishing.
-  static const String realBannerAndroid = 'ca-app-pub-0000000000000000/0000000000';
-  static const String realInterstitialAndroid = 'ca-app-pub-0000000000000000/1111111111';
+  static const String realBannerAndroid =
+      'ca-app-pub-0000000000000000/0000000000';
+  static const String realInterstitialAndroid =
+      'ca-app-pub-0000000000000000/1111111111';
 
-  static const String testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
-  static const String testInterstitialAndroid = 'ca-app-pub-3940256099942544/1033173712';
+  static const String testBannerAndroid =
+      'ca-app-pub-3940256099942544/6300978111';
+  static const String testInterstitialAndroid =
+      'ca-app-pub-3940256099942544/1033173712';
 
-  static String get banner =>
-      useReal ? realBannerAndroid : testBannerAndroid;
+  static String get banner => useReal ? realBannerAndroid : testBannerAndroid;
   static String get interstitial =>
       useReal ? realInterstitialAndroid : testInterstitialAndroid;
 }
 
 class AdsService extends ChangeNotifier {
   bool _initialized = false;
+  bool _initializing = false;
   bool _personalized = false;
   bool _canRequestAds = false;
   bool _privacyOptionsRequired = false;
   InterstitialAd? _interstitial;
+
+  /// Ad handed to the platform but still inside the post-frame + delay window
+  /// before [InterstitialAd.show] actually runs. Tracked separately so a
+  /// dispose during that window still tears the ad down instead of leaking it.
+  InterstitialAd? _showing;
+
+  /// True while an [InterstitialAd.load] is in flight. Serialises preloads:
+  /// two overlapping loads would otherwise let the later one orphan the first
+  /// loaded ad, which is never shown and never disposed.
+  bool _preloading = false;
+
+  /// Set once the service is torn down; in-flight load callbacks check this to
+  /// dispose their ad instead of resurrecting it into a dead service.
+  bool _disposed = false;
   int _navCount = 0;
   DateTime? _lastInterstitial;
 
@@ -45,7 +64,12 @@ class AdsService extends ChangeNotifier {
   /// stack ads back to back, which is both hostile and a policy risk.
   static const Duration interstitialCooldown = Duration(minutes: 2);
 
-  bool get supported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  // defaultTargetPlatform instead of dart:io's Platform, so this file also
+  // compiles for web (where dart:io does not exist and ads never load).
+  bool get supported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   /// True only once the SDK is up *and* consent allows an ad request. Every ad
   /// widget must gate on this, not merely on initialisation.
@@ -87,8 +111,9 @@ class AdsService extends ChangeNotifier {
     try {
       _canRequestAds = await ConsentInformation.instance.canRequestAds();
       _privacyOptionsRequired =
-          await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
-              PrivacyOptionsRequirementStatus.required;
+          await ConsentInformation.instance
+              .getPrivacyOptionsRequirementStatus() ==
+          PrivacyOptionsRequirementStatus.required;
     } catch (_) {
       // If consent state cannot be read, stay silent rather than risk serving
       // a non-compliant ad.
@@ -115,20 +140,29 @@ class AdsService extends ChangeNotifier {
 
   Future<void> init({required bool personalized}) async {
     _personalized = personalized;
-    if (!supported) return;
+    if (!supported || _initializing) return;
 
-    await _gatherConsent();
+    _initializing = true;
+    try {
+      await _gatherConsent();
+      await MobileAds.instance.updateRequestConfiguration(
+        RequestConfiguration(
+          ageRestrictedTreatment: AgeRestrictedTreatment.unspecified,
+          maxAdContentRating: MaxAdContentRating.g,
+        ),
+      );
+      await MobileAds.instance.initialize();
+      _initialized = true;
+    } catch (error) {
+      debugPrint('Ad initialization error: $error');
+      _initialized = false;
+      _canRequestAds = false;
+    } finally {
+      _initializing = false;
+      notifyListeners();
+    }
 
-    await MobileAds.instance.initialize();
-    await MobileAds.instance.updateRequestConfiguration(
-      RequestConfiguration(
-        tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
-        maxAdContentRating: MaxAdContentRating.g,
-      ),
-    );
-    _initialized = true;
-    if (_canRequestAds) _preloadInterstitial();
-    notifyListeners();
+    if (_initialized && _canRequestAds) _preloadInterstitial();
   }
 
   void setPersonalized(bool value) {
@@ -137,14 +171,14 @@ class AdsService extends ChangeNotifier {
   }
 
   AdRequest get request => AdRequest(
-        nonPersonalizedAds: !_personalized,
-        keywords: const [
-          'mobile repair',
-          'smartphone spare parts',
-          'lcd display',
-          'mobile accessories',
-        ],
-      );
+    nonPersonalizedAds: !_personalized,
+    keywords: const [
+      'mobile repair',
+      'smartphone spare parts',
+      'lcd display',
+      'mobile accessories',
+    ],
+  );
 
   BannerAd createBanner({required AdSize size, VoidCallback? onLoaded}) {
     return BannerAd(
@@ -159,20 +193,57 @@ class AdsService extends ChangeNotifier {
   }
 
   void _preloadInterstitial() {
-    if (!supported || !_canRequestAds || _interstitial != null) return;
-    InterstitialAd.load(
+    if (!supported || !_initialized || !_canRequestAds) return;
+    if (_interstitial != null || _preloading || _disposed) return;
+    _preloading = true;
+
+    final future = InterstitialAd.load(
       adUnitId: AdIds.interstitial,
       request: request,
       adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitial = ad,
-        onAdFailedToLoad: (_) => _interstitial = null,
+        onAdLoaded: (ad) {
+          _preloading = false;
+          // The service died while the load was in flight; never leave the ad
+          // owned by nobody (the classic interstitial memory leak).
+          if (_disposed) {
+            ad.dispose();
+            return;
+          }
+          _interstitial = ad;
+          // Attach the full-screen callback at load time (Google's lifecycle
+          // rules): a dismissal or a failed show must always end the ad's life
+          // and immediately re-arm the next preload.
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _interstitial = null;
+              _preloadInterstitial();
+            },
+            onAdFailedToShowFullScreenContent: (ad, _) {
+              ad.dispose();
+              _interstitial = null;
+              _preloadInterstitial();
+            },
+          );
+        },
+        onAdFailedToLoad: (_) {
+          _preloading = false;
+          _interstitial = null;
+        },
       ),
     );
+    // Belt-and-braces: if the load future itself fails without a callback,
+    // clear the in-flight flag so future navigations can retry. Also prevents
+    // the discarded future from surfacing as an unhandled async error.
+    unawaited(future.catchError((_) {
+      _preloading = false;
+      _interstitial = null;
+    }));
   }
 
   /// Call on meaningful navigation events (e.g. opening a group detail).
   void maybeShowInterstitial() {
-    if (!supported || !_canRequestAds) return;
+    if (!supported || !_initialized || !_canRequestAds || _disposed) return;
     _navCount++;
     if (_navCount % interstitialEvery != 0) return;
 
@@ -187,29 +258,32 @@ class AdsService extends ChangeNotifier {
     }
     _lastInterstitial = now;
     _interstitial = null;
+    // The full-screen callback was already attached at load time, so a
+    // dismissal or failed show always disposes and reloads. This field only
+    // tracks the hand-off window so [dispose] can tear the ad down mid-delay.
+    _showing = ad;
 
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _interstitial = null;
-        _preloadInterstitial();
-      },
-      onAdFailedToShowFullScreenContent: (ad, _) {
-        ad.dispose();
-        _interstitial = null;
-        _preloadInterstitial();
-      },
-    );
     // Show *after* the current page transition finishes. Firing it inline made
     // the ad and the route animation run at once, which looked like a stutter.
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future<void>.delayed(const Duration(milliseconds: 350), ad.show);
+      if (_showing != ad || _disposed) return;
+      Future<void>.delayed(const Duration(milliseconds: 350), () {
+        if (_showing != ad || _disposed) return;
+        _showing = null;
+        unawaited(ad.show());
+      });
     });
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    // Tear down any ad still inside the pre-show hand-off window.
+    final pending = _showing;
+    _showing = null;
+    pending?.dispose();
     _interstitial?.dispose();
+    _interstitial = null;
     super.dispose();
   }
 }

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'format.dart';
+
 /// ---------------------------------------------------------------------------
 /// Motion system
 /// ---------------------------------------------------------------------------
@@ -214,22 +216,37 @@ class AnimatedCounter extends StatelessWidget {
     required this.value,
     this.style,
     this.suffix = '',
+    this.grouped = false,
   });
 
   final int value;
   final TextStyle? style;
   final String suffix;
 
+  /// Insert thousands separators ("5,675").
+  ///
+  /// Grouped counters also get tabular figures, so a rolling number does not
+  /// shuffle sideways as digits change width mid-count.
+  final bool grouped;
+
+  TextStyle? get _style {
+    if (!grouped) return style;
+    return (style ?? const TextStyle())
+        .copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+  }
+
+  String _render(int v) => '${grouped ? groupDigits(v) : '$v'}$suffix';
+
   @override
   Widget build(BuildContext context) {
     if (Motion.reduced(context)) {
-      return Text('$value$suffix', style: style);
+      return Text(_render(value), style: _style);
     }
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: value.toDouble()),
       duration: Motion.slow,
       curve: Motion.enter,
-      builder: (context, v, _) => Text('${v.round()}$suffix', style: style),
+      builder: (context, v, _) => Text(_render(v.round()), style: _style),
     );
   }
 }

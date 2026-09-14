@@ -13,12 +13,18 @@ import 'search_engine.dart';
 /// 1. bundled asset (instant, always works offline)
 /// 2. cached remote copy (if previously downloaded and newer)
 /// 3. background remote refresh (silently upgrades the cache)
+///
+/// Remote updates are strictly opt-in: the app never talks to a hardcoded
+/// server. Provide one at build time with e.g.
+///   flutter build appbundle --dart-define=CATALOG_URL=https://your-host/catalog.json
+/// Without it the bundled + cached data is used and nothing leaves the device.
 class CatalogService extends ChangeNotifier {
   CatalogService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Point this at a JSON file you host (same schema as assets/data/catalog.json).
-  static const String remoteUrl =
-      String.fromEnvironment('CATALOG_URL', defaultValue: 'https://combouniversal.com/app/catalog.json');
+  /// No default: an unset URL means the app is fully offline and makes zero
+  /// network requests for data.
+  static const String remoteUrl = String.fromEnvironment('CATALOG_URL');
 
   static const _cacheKey = 'catalog_cache_v1';
 
@@ -61,7 +67,9 @@ class CatalogService extends ChangeNotifier {
     }
     _loading = false;
     notifyListeners();
-    unawaited(refreshFromRemote());
+    // Only hit the network when a remote endpoint was configured at build
+    // time; a fresh install of a URL-free build stays 100% offline.
+    if (remoteUrl.isNotEmpty) unawaited(refreshFromRemote());
   }
 
   Future<Catalog> _loadBundled() async {
@@ -83,6 +91,7 @@ class CatalogService extends ChangeNotifier {
   /// Downloads a newer catalog if one is published. Failures are non-fatal:
   /// the app keeps working with bundled/cached data.
   Future<bool> refreshFromRemote({bool userInitiated = false}) async {
+    if (remoteUrl.isEmpty) return false; // no endpoint configured: stay offline
     if (_disposed || _refreshing) return false;
     _refreshing = true;
     if (userInitiated) notifyListeners();

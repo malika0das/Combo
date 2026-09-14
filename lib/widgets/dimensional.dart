@@ -80,13 +80,15 @@ class _TiltCardState extends State<TiltCard> {
             duration: Motion.quick,
             curve: Motion.enter,
             builder: (context, t, child) {
+              final s = 1 - 0.02 * t;
               final matrix = Matrix4.identity()
                 // The perspective term is what makes this genuine 3D: nearer
                 // edges enlarge, far edges foreshorten.
                 ..setEntry(3, 2, 0.0012)
                 ..rotateX(-_dy * widget.maxTilt * t)
                 ..rotateY(_dx * widget.maxTilt * t)
-                ..scale(1 - 0.02 * t);
+                // Uniform scale, w untouched — what scale(x) used to do.
+                ..scaleByDouble(s, s, s, 1.0);
               return Transform(
                 transform: matrix,
                 alignment: Alignment.center,
@@ -324,7 +326,7 @@ class CompatibilityGlyph extends StatelessWidget {
       alignment: Alignment.center,
       transform: Matrix4.identity()
         ..setEntry(3, 2, 0.0016)
-        ..translate(dir * spread)
+        ..translateByDouble(dir * spread, 0, 0, 1.0)
         ..rotateY(yaw)
         ..rotateZ(dir * 0.06 * (1 - t)),
       child: Container(

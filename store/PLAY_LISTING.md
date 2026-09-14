@@ -13,7 +13,7 @@ Alternatives: `Universal Combo List 2026` (25) · `Combo Support: Universal List
 Combo Universal is a fast, offline-first compatibility reference for mobile repair technicians, spare-part wholesalers and phone service centres. Search any model name and instantly see every other phone that uses the same display, combo, battery, tempered glass, CC/sub board or frame.
 
 WHY TECHNICIANS USE IT
-• Type a model — matching models are highlighted instantly, exactly like the website.
+• Type a model — matching models are highlighted instantly.
 • Spelling does not matter: "redmi9a", "rn9pro" and "samsang a10" all find the right part.
 • Add "battery", "glass" or "board" to a search to jump straight to that part type.
 • Tap any phone to see every universal part that fits it, on one screen.
@@ -53,7 +53,6 @@ Compatibility data is community contributed and provided for guidance only. Manu
 Brand names are trademarks of their respective owners. This app is an independent reference tool and is not affiliated with or endorsed by any manufacturer.
 
 Feedback and new list contributions: WhatsApp +91 72057 02493
-Websites: combouniversal.com · combosupport.in
 
 ## Keyword focus (used naturally above — do not keyword-stuff the title)
 universal combo list, combo universal, lcd combo list, display compatibility, mobile spare parts, battery universal list, tempered glass universal, sub board list, mobile repair tool, folder list 2026
@@ -61,8 +60,8 @@ universal combo list, combo universal, lcd combo list, display compatibility, mo
 ## Store setup checklist
 - Category: Tools (alt: Business)
 - Tags: Utilities, Reference
-- Contact email + website + phone required
-- Privacy policy URL: publish `store/PRIVACY_POLICY.md` at https://combouniversal.com/privacy-policy/
+- Contact email + phone required
+- Privacy policy URL: publish `store/PRIVACY_POLICY.md` at any public URL you control (required — must not 404)
 - Content rating questionnaire: Everyone (no UGC, no ads targeted at children)
 - Ads: declare **Yes, this app contains ads**
 - Target audience: 18+ (professional tool) → avoids Families policy requirements

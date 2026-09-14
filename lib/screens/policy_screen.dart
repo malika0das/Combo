@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 enum PolicyKind { privacy, terms, licences }
 
-/// In-app copy of the policy documents. Play Console also requires a public
-/// URL - publish the same text at https://combouniversal.com/privacy-policy/.
+/// In-app copy of the policy documents. Keep store/PRIVACY_POLICY.md in sync
+/// with the privacy text here - Play Console requires it in the listing too.
 class PolicyScreen extends StatelessWidget {
   const PolicyScreen({super.key, required this.kind});
 
@@ -20,7 +20,7 @@ Combo Universal does not ask you to create an account and does not collect your 
 Recent searches, saved lists, theme choice and the downloaded compatibility list are stored only on your device using local storage. Uninstalling the app deletes them. This data is never uploaded to us.
 
 3. Network use
-The app downloads an updated compatibility list from our server. This request contains no personal identifiers beyond the standard information every internet request includes (such as your IP address, handled by our hosting provider).
+The app works fully offline by default. A version built with list updates enabled downloads an updated compatibility list over HTTPS. This request contains no personal identifiers beyond the standard information every internet request includes (such as your IP address, handled by the hosting provider).
 
 4. Advertising
 We show ads from Google AdMob to keep the app free. Google may use a device advertising identifier to serve and measure ads. If you are in the European Economic Area, the UK or Switzerland, we ask for your consent through Google's official consent form before any ad is loaded, and no ad is requested if you decline. You can review or change that choice at any time from Settings, switch to non-personalised ads, and reset or delete the advertising ID in your Android settings. Google's practices are described at https://policies.google.com/technologies/ads
@@ -35,12 +35,11 @@ We use HTTPS for all network requests. No personal data is transmitted to our se
 Clear recent searches and saved lists from within the app, disable personalised ads in Settings, or uninstall the app to remove all locally stored data.
 
 8. Changes
-Any change to this policy will be published in the app and on our website with an updated date.
+Any change to this policy will be published inside the app with an updated date.
 
 9. Contact
 Makund Mobile, Lathor, Bolangir, Odisha, India 767038
 WhatsApp: +91 72057 02493
-Website: https://combouniversal.com/
 ''';
 
   static const _terms = '''
@@ -60,7 +59,7 @@ We are not liable for any loss, damaged part, damaged device or business loss ar
 Brand names such as Samsung, Xiaomi, Redmi, Vivo, iQOO, Oppo, Realme, OnePlus, Apple, Motorola, Infinix, Tecno, Itel, Lava and Honor are trademarks of their respective owners. This app is an independent reference tool and is not endorsed by, affiliated with, or sponsored by any of them. Model names appear only to describe which spare part physically fits which handset, which is a factual statement of compatibility.
 
 5. Where the data comes from
-The compatibility list is compiled by Makund Mobile from its own published listings at combouniversal.com and combosupport.in, together with parts tested in our own workshop. It is not copied from any other app or database.
+The compatibility list is compiled by Makund Mobile from its own parts listings and from parts physically tested in our own workshop. It is not copied from any other app or database.
 
 6. Acceptable use
 The compiled list is our own work. Please do not scrape, resell or redistribute it as your own product. You are of course free to use the information to run your repair business.

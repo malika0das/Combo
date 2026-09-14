@@ -6,7 +6,6 @@ import '../app_scope.dart';
 import '../motion.dart';
 import '../responsive.dart';
 import '../services/search_engine.dart';
-import '../widgets/banner_ad_slot.dart';
 import '../widgets/ui.dart';
 import 'model_screen.dart';
 
@@ -76,11 +75,22 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // As a shell tab this screen is built before the catalog engine has
+    // loaded, so it must rebuild when the catalog arrives.
+    return AnimatedBuilder(
+      animation: AppScope.of(context).catalog,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final scope = AppScope.of(context);
     final SearchEngine? engine = scope.catalog.engine;
     final all = engine?.allModels ?? const <String>[];
     _ensureIndex(all);
     final models = _models;
+    final filterActive = _filter.trim().isNotEmpty;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -92,11 +102,13 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
             child: TextField(
               controller: _controller,
               onChanged: _onFilterChanged,
+              autocorrect: false,
+              enableSuggestions: false,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 isDense: true,
-                hintText: 'Filter models',
-                prefixIcon: const Icon(Icons.filter_alt_outlined),
+                hintText: 'Search models',
+                prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _filter.isEmpty
                     ? null
                     : IconButton(
@@ -111,71 +123,118 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BannerAdSlot(ads: scope.ads),
-      body: models.isEmpty
+      body: scope.catalog.loading
+          ? const Center(child: CircularProgressIndicator())
+          : models.isEmpty
           ? const EmptyState(
               icon: Icons.search_off_rounded,
-              title: 'No model matches',
-              message: 'Try fewer characters.',
+              title: 'No models found',
+              message: 'Try a shorter spelling or clear the search.',
             )
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('${models.length} models',
-                        style: Theme.of(context).textTheme.labelSmall),
-                  ),
-                ),
-                Expanded(
-                  child: PageBody(
-                    child: ListView.builder(
-                    itemCount: models.length,
-                    // No fixed itemExtent: rows must be free to grow with the
-                    // in-app text-size slider, otherwise large text is clipped.
-                    itemBuilder: (context, i) {
-                      final model = models[i];
-                      final showHeader =
-                          i == 0 || _initial(model) != _initial(models[i - 1]);
-                      return ListTile(
-                        dense: true,
-                        leading: showHeader
-                            ? Container(
-                                width: 28,
-                                height: 28,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withValues(alpha: 0.10),
-                                  borderRadius: BorderRadius.circular(9),
-                                ),
-                                child: Text(
-                                  _initial(model),
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              )
-                            : const SizedBox(width: 28),
-                        title: Text(model),
-                        trailing: const Icon(Icons.chevron_right_rounded, size: 18),
-                        onTap: () {
-                          Haptics.tap();
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ModelScreen(model: model),
-                          ));
-                        },
-                      );
-                      },
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        context.pagePadding,
+                        10,
+                        context.pagePadding,
+                        6,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${models.length} ${models.length == 1 ? 'model' : 'models'}',
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              filterActive
+                                  ? 'Matching your search'
+                                  : 'Tap a model to see compatible parts',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        interactive: true,
+                        child: ListView.separated(
+                          itemCount: models.length,
+                          separatorBuilder: (context, i) {
+                            final sameLetter =
+                                _initial(models[i]) == _initial(models[i + 1]);
+                            return sameLetter
+                                ? Divider(
+                                    indent: 72,
+                                    endIndent: 16,
+                                    color: scheme.outlineVariant.withValues(
+                                      alpha: 0.55,
+                                    ),
+                                  )
+                                : const SizedBox(height: 8);
+                          },
+                          itemBuilder: (context, i) {
+                            final model = models[i];
+                            final showHeader =
+                                i == 0 ||
+                                _initial(model) != _initial(models[i - 1]);
+                            return ListTile(
+                              dense: true,
+                              leading: showHeader
+                                  ? Container(
+                                      width: 34,
+                                      height: 34,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: scheme.primary.withValues(
+                                          alpha: 0.10,
+                                        ),
+                                        borderRadius: BorderRadius.circular(11),
+                                      ),
+                                      child: Text(
+                                        _initial(model),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: scheme.primary,
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox(width: 34),
+                              title: Text(
+                                model,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20,
+                              ),
+                              onTap: () {
+                                Haptics.tap();
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ModelScreen(model: model),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
     );
   }

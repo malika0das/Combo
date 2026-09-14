@@ -58,18 +58,20 @@ word. Mismatches are the single most common rejection cause.
 
 ## 3. Copyright, trademark and data provenance
 
-**Data provenance.** The catalog is built only from `tools/raw/`, which is
-Makund Mobile's own published listings (combouniversal.com, combosupport.in)
-plus workshop testing. The `source` field in `catalog.json` states this.
+**Data provenance.** The catalog is built only from `tools/raw/` — Makund
+Mobile's own parts listings plus workshop testing. The `source` field in
+`catalog.json` states this. Never credit a domain or database you do not
+actually license: a provenance string naming a third party is a written
+admission of copying.
 
 > Note: an earlier revision of `catalog.json` also credited a competitor's
 > domain in its `source` string even though none of that site's data was ever
 > used. That was corrected — never credit a third-party database you do not
 > actually license, as it is a written admission of copying.
 
-**Do not** ingest data from `universaldisplay.in` or any other competitor app
-or site. A compatibility list is a compiled database and copying one invites a
-DMCA takedown, which on Play means immediate suspension.
+**Do not** ingest data from any competitor app or site. A compatibility list
+is a compiled database and copying one invites a DMCA takedown, which on Play
+means immediate suspension.
 
 **Trademarks.** Brand names (Samsung, Xiaomi, Apple, etc.) are used purely
 nominatively — to describe which part fits which phone. This is permitted, but
@@ -80,8 +82,9 @@ only while all of the following hold:
 - The app name and icon cannot be mistaken for a manufacturer's own app.
 - The disclaimer in Terms §4 stays visible in-app and in the listing.
 
-**Fonts.** Sora, Inter and JetBrains Mono are SIL OFL 1.1. `assets/google_fonts/OFL.txt`
-must ship with the build — the licence requires the notice to be distributed.
+**Fonts.** Sora, Inter and JetBrains Mono are SIL OFL 1.1.
+`assets/google_fonts/OFL.txt` ships with the build (run `tools/fetch_fonts.sh`
+if the folder is empty) — the licence requires the notice to be distributed.
 
 **Screenshots.** Use only the app's own UI. No manufacturer press renders, no
 stock photos you have not licensed.
@@ -90,29 +93,11 @@ stock photos you have not licensed.
 
 ## 4. App links
 
-`AndroidManifest.xml` declares `autoVerify="true"` for `combouniversal.com`.
-Verification **will fail** unless this file is live and served as
-`application/json` over HTTPS:
-
-```
-https://combouniversal.com/.well-known/assetlinks.json
-```
-
-```json
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.makund.combouniversal",
-    "sha256_cert_fingerprints": ["<Play App Signing SHA-256>"]
-  }
-}]
-```
-
-Take the fingerprint from **Play Console → Setup → App signing**, not from your
-local keystore. A failed verification does not block publishing, but links will
-open in the browser instead of the app. If you do not intend to host the file,
-remove the `autoVerify` intent filter.
+The manifest declares **no** App Links / deep links. An `autoVerify` intent
+filter for a domain you do not control (or that does not host a valid
+`assetlinks.json`) fails verification and is a misrepresentation risk in review.
+Only re-add one after you host `.well-known/assetlinks.json` (with the Play App
+Signing SHA-256 fingerprint) on a domain you fully control.
 
 ---
 
@@ -122,8 +107,8 @@ remove the `autoVerify` intent filter.
   expected rating Everyone / PEGI 3.
 - Target audience: adults / professional tool. **Do not** opt into Designed for
   Families — the app contains ads and is not aimed at children.
-- Privacy policy URL must be publicly reachable and not behind a redirect chain:
-  `https://combouniversal.com/privacy-policy/`
+- Privacy policy URL must be publicly reachable, not behind a redirect chain,
+  and hosted on a domain you control.
 - Keep the listing free of unsubstantiated superlatives ("best", "#1",
   "guaranteed compatibility") and of competitor names.
 - The accuracy disclaimer must be in the full description, not just in-app.

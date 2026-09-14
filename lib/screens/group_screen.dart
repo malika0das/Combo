@@ -19,11 +19,19 @@ class GroupCard extends StatelessWidget {
     required this.group,
     required this.query,
     required this.subtitle,
+    this.categoryIcon,
+    this.categoryTint,
   });
 
   final ComboGroup group;
   final String query;
   final String subtitle;
+
+  /// Optional part-category identity. When set, a small tinted tile leads the
+  /// card so a mixed list (search results, saved lists) can be scanned by
+  /// colour the same way the home grid is.
+  final IconData? categoryIcon;
+  final Color? categoryTint;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,20 @@ class GroupCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  if (categoryIcon != null && categoryTint != null) ...[
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: categoryTint!.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(categoryIcon, size: 19, color: categoryTint),
+                    ),
+                    Gap.wMd,
+                  ],
                   Expanded(
                     child: HighlightText(
                       text: group.title,
@@ -165,7 +186,9 @@ class _ModelChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
+    // Tapping a model chip now opens its full profile — every part that fits
+    // it — instead of being a dead end.
+    return ActionChip(
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: HighlightText(
@@ -173,6 +196,12 @@ class _ModelChip extends StatelessWidget {
         query: query,
         style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w500),
       ),
+      onPressed: () {
+        Haptics.tap();
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ModelScreen(model: model),
+        ));
+      },
     );
   }
 }
@@ -419,9 +448,22 @@ class GroupScreen extends StatelessWidget {
             },
           ),
           Gap.xl,
-          const SectionHeader(
+          SectionHeader(
             title: 'Compatible models',
             subtitle: 'Tap a model to see every part that fits it',
+            trailing: TextButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(
+                    ClipboardData(text: group.models.join('\n')));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('All models copied')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.copy_all_outlined, size: 16),
+              label: const Text('Copy all'),
+            ),
           ),
           Card(
             // sliver-free but lazy: ListView.separated inside a ListView needs

@@ -23,7 +23,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.makund.combouniversal"
-    compileSdk 35
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -38,8 +38,8 @@ android {
 
     defaultConfig {
         applicationId "com.makund.combouniversal"
-        minSdk 23
-        targetSdk 35
+        minSdkVersion flutter.minSdkVersion
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
 
@@ -68,8 +68,8 @@ android {
             signingConfig keystorePropertiesFile.exists()
                     ? signingConfigs.release
                     : signingConfigs.debug
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

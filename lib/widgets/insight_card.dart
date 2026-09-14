@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../motion.dart';
 import '../services/insight_service.dart';
 import '../theme.dart';
+import 'animated_icons.dart';
 
 /// Renders a proactive [Insight] with a tone-appropriate colour, icon and
 /// voice. Dismissible, because a suggestion the user does not want must be
@@ -21,7 +22,7 @@ class InsightCard extends StatelessWidget {
 
   ({Color color, IconData icon}) get _style => switch (insight.tone) {
         InsightTone.welcome => (
-            color: const Color(0xFF3E7BFA),
+            color: const Color(0xFFE8705F),
             icon: Icons.auto_awesome_rounded
           ),
         InsightTone.tip => (
@@ -60,14 +61,13 @@ class InsightCard extends StatelessWidget {
       child: EntranceFade(
         child: Container(
           decoration: BoxDecoration(
-            color: style.color.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: style.color.withValues(alpha: 0.22)),
+            color: style.color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(24),
               onTap: insight.actionLabel == null
                   ? null
                   : () {
@@ -79,14 +79,13 @@ class InsightCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: style.color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(11),
-                      ),
-                      child: Icon(style.icon, size: 18, color: style.color),
+                    BreathingIcon(
+                      icon: style.icon,
+                      tint: style.color,
+                      iconSize: 18,
+                      containerSize: 34,
+                      borderRadius: 11,
+                      phase: 0.5,
                     ),
                     Gap.wMd,
                     Expanded(

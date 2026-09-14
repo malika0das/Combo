@@ -197,9 +197,12 @@ class VerifyNotice extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: scheme.outlineVariant),
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        // A hairline keeps the notice legible wherever it sits: on the raw
+        // canvas (home, group detail) and inside dark mode where surface-on-
+        // background tone steps nearly vanish.
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

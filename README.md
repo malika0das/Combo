@@ -1,9 +1,9 @@
 # Combo Universal — Flutter Android App
 
-Offline-first universal compatibility list (combo/display, battery, tempered glass, CC board, frame) for mobile repair technicians. Companion app for [combouniversal.com](https://combouniversal.com/) and [combosupport.in](https://combosupport.in/).
+Offline-first universal compatibility list (combo/display, battery, tempered glass, CC board, frame) for mobile repair technicians. 100% self-contained: no hardcoded external URLs, no third-party server, nothing to infringe.
 
 ## Features
-- **Smart highlight search** across every category at once, with debounce and exact-match ranking (same behaviour as the website).
+- **Smart highlight search** across every category at once, with debounce and exact-match ranking.
 - **Hybrid data**: ships with a bundled JSON catalog (works offline, instantly), silently upgrades from a remote JSON when a higher `version` is published, and caches it locally.
 - Category → brand → list browsing, per-brand filter.
 - Save/bookmark lists, recent searches, copy & WhatsApp share of a full list.
@@ -110,7 +110,7 @@ lib/
   screens/               home, category/brand, group detail, search, saved, settings, policy
   widgets/               highlight_text.dart, banner_ad_slot.dart
 assets/data/catalog.json bundled offline catalog (generated)
-tools/raw/*.txt          source lists scraped from combouniversal.com
+tools/raw/*.txt          plain-text source lists (one group per line)
 tools/build_catalog.py   regenerates assets/data/catalog.json from tools/raw/
 store/                   Play listing, data safety, privacy policy, terms, icon source
 ```
@@ -128,9 +128,9 @@ flutter pub get
 flutter run
 ```
 
-Point the app at your own remote catalog:
+Optionally point the app at your own remote catalog (there is no default — without one the app makes zero data requests):
 ```bash
-flutter run --dart-define=CATALOG_URL=https://combouniversal.com/app/catalog.json
+flutter run --dart-define=CATALOG_URL=https://your-host.example/catalog.json
 ```
 
 ## Before you publish
@@ -140,7 +140,6 @@ flutter run --dart-define=CATALOG_URL=https://combouniversal.com/app/catalog.jso
 4. **Icon** — `store/icon_source.png` is a 1024px source; generate launcher densities (e.g. with `flutter_launcher_icons`) into `android/app/src/main/res/mipmap-*`.
 5. **Privacy policy URL** — publish `store/PRIVACY_POLICY.md` at a public URL and enter it in Play Console.
 6. **Data safety form** — copy the answers in `store/DATA_SAFETY.md`.
-7. **App Links** — host `.well-known/assetlinks.json` on combouniversal.com so deep links verify (helps search discoverability).
 
 Build the release bundle:
 ```bash

@@ -248,7 +248,7 @@ def main() -> None:
     catalog = {
         "version": 2,
         "updatedAt": date.today().isoformat(),
-        "source": "Compiled by Makund Mobile from its own combouniversal.com and combosupport.in listings, plus workshop testing.",
+        "source": "Compiled by Makund Mobile from its own parts listings and workshop testing.",
         "notice": (
             "Compatibility data is community contributed. Always physically verify "
             "connector, flex length and frame fit before fitting a part."

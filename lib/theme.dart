@@ -5,18 +5,23 @@ import 'package:google_fonts/google_fonts.dart';
 /// ---------------------------------------------------------------------------
 /// Brand palette
 /// ---------------------------------------------------------------------------
-/// A deep, slightly desaturated indigo-blue reads as "professional tool"
-/// rather than "consumer app", and keeps the amber highlight legible on top.
-const Color brandSeed = Color(0xFF1B4FD8);
+/// A vivid coral — the single warm accent the whole UI hangs from (buttons,
+/// highlights, the hero sparkle). Warm cream surfaces keep the tool friendly
+/// at a repair counter without ever reading as a toy.
+const Color brandSeed = Color(0xFFE8705F);
 const Color brandAccent = Color(0xFFF0A500);
-const Color brandInk = Color(0xFF0B1220);
+const Color brandInk = Color(0xFF1C150F);
 
-/// Surface tints used for the light theme. Material's default surfaces are a
-/// little flat for a list-heavy app, so we hand-pick a soft neutral stack.
-const Color _lightBg = Color(0xFFF4F6FB);
-const Color _lightSurface = Color(0xFFFFFFFF);
-const Color _darkBg = Color(0xFF0B0F17);
-const Color _darkSurface = Color(0xFF141A24);
+/// Soft butter yellow — the secondary accent (sparkle, "focus score"-style
+/// tinted cards) in the same family as the coral.
+const Color brandYellow = Color(0xFFF2C16B);
+
+/// Surface tints: a warm ivory canvas with near-white warm cards on top, so
+/// flat borderless cards still separate cleanly.
+const Color _lightBg = Color(0xFFF2EFE4);
+const Color _lightSurface = Color(0xFFFDFCF8);
+const Color _darkBg = Color(0xFF171310);
+const Color _darkSurface = Color(0xFF241E18);
 
 /// ---------------------------------------------------------------------------
 /// Typography
@@ -31,7 +36,15 @@ class AppFonts {
   const AppFonts._();
 
   static TextStyle display(TextStyle? base) => GoogleFonts.sora(textStyle: base);
-  static TextStyle body(TextStyle? base) => GoogleFonts.inter(textStyle: base);
+  static TextStyle body(TextStyle? base) => GoogleFonts.inter(
+        textStyle: base,
+      ).copyWith(
+        // The bundled Inter files are variable fonts. Older Android text
+        // engines can briefly expose a variant family before its glyph table
+        // is ready, which turns bold labels into tofu boxes. Keep the brand
+        // face first, but guarantee an immediately readable system fallback.
+        fontFamilyFallback: const ['Roboto', 'Arial', 'sans-serif'],
+      );
   static TextStyle mono(TextStyle? base) =>
       GoogleFonts.jetBrainsMono(textStyle: base);
 
@@ -109,13 +122,13 @@ ThemeData buildTheme(Brightness brightness) {
     surface: isLight ? _lightSurface : _darkSurface,
     // The amber accent carries the search highlight and "hot" badges.
     tertiary: brandAccent,
-    tertiaryContainer: isLight ? const Color(0xFFFFECC2) : const Color(0xFF4A3505),
-    onTertiaryContainer: isLight ? const Color(0xFF4A3505) : const Color(0xFFFFDFA0),
-    outlineVariant: isLight ? const Color(0xFFE2E7F0) : const Color(0xFF27303E),
+    tertiaryContainer: isLight ? const Color(0xFFF7E7BE) : const Color(0xFF4A3D1E),
+    onTertiaryContainer: isLight ? const Color(0xFF4A3D1E) : const Color(0xFFF3DFAE),
+    outlineVariant: isLight ? const Color(0xFFE6E0D0) : const Color(0xFF383026),
   );
 
   final textTheme = _buildTextTheme(scheme);
-  final radius = BorderRadius.circular(18);
+  final radius = BorderRadius.circular(24);
 
   return ThemeData(
     useMaterial3: true,
@@ -148,9 +161,15 @@ ThemeData buildTheme(Brightness brightness) {
       color: scheme.surface,
       surfaceTintColor: Colors.transparent,
       clipBehavior: Clip.antiAlias,
+      // Flat fill — in light mode separation comes from the ivory canvas
+      // showing between warm-white cards, as in editorial card UIs. In dark
+      // mode that tone step is too faint to read, so a quiet hairline takes
+      // over the job instead.
       shape: RoundedRectangleBorder(
         borderRadius: radius,
-        side: BorderSide(color: scheme.outlineVariant),
+        side: isLight
+            ? BorderSide.none
+            : BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.55)),
       ),
     ),
 
@@ -185,9 +204,9 @@ ThemeData buildTheme(Brightness brightness) {
     ),
 
     chipTheme: ChipThemeData(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      side: BorderSide(color: scheme.outlineVariant),
-      backgroundColor: isLight ? const Color(0xFFF7F9FC) : const Color(0xFF1B2330),
+      shape: const StadiumBorder(),
+      side: BorderSide.none,
+      backgroundColor: isLight ? const Color(0xFFEAE6D8) : const Color(0xFF2E2720),
       selectedColor: scheme.primaryContainer,
       labelStyle: textTheme.labelMedium,
       secondaryLabelStyle: textTheme.labelMedium,
@@ -201,7 +220,7 @@ ThemeData buildTheme(Brightness brightness) {
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 50),
         padding: const EdgeInsets.symmetric(horizontal: 22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
       ),
     ),
@@ -215,7 +234,7 @@ ThemeData buildTheme(Brightness brightness) {
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, 50),
         side: BorderSide(color: scheme.outlineVariant),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: const StadiumBorder(),
         textStyle: textTheme.labelLarge,
       ),
     ),
@@ -228,14 +247,14 @@ ThemeData buildTheme(Brightness brightness) {
 
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       contentTextStyle: textTheme.bodyMedium?.copyWith(color: scheme.onInverseSurface),
       backgroundColor: scheme.inverseSurface,
       insetPadding: const EdgeInsets.all(16),
     ),
 
     dialogTheme: DialogThemeData(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
       titleTextStyle: textTheme.titleLarge,
       contentTextStyle: textTheme.bodyMedium,
       backgroundColor: scheme.surface,
@@ -247,7 +266,7 @@ ThemeData buildTheme(Brightness brightness) {
       backgroundColor: scheme.surface,
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
     ),
 
@@ -281,7 +300,9 @@ ThemeData buildTheme(Brightness brightness) {
 
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      // CupertinoPageTransitionsBuilder was removed from the framework; the
+      // Material 3 forward-fade transition is its intended replacement.
+      TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
     }),
   );
 }
@@ -338,3 +359,64 @@ IconData iconFor(String key) {
       return Icons.smartphone_rounded;
   }
 }
+
+/// ---------------------------------------------------------------------------
+/// Pastel tile surfaces
+/// ---------------------------------------------------------------------------
+/// The stat-tile language: a flat, saturated pastel fill carrying a single dark
+/// ink for every line of text on it — no border, no shadow, no alpha wash, and
+/// no tinted captions. Tinted text on a tinted card is both muddy and a
+/// contrast hazard; one ink on a solid pastel is neither.
+///
+/// [pastelSurface] keeps the accent's hue, clamps its saturation, and then
+/// solves for the lightness that lands it on a fixed *perceived* luminance —
+/// so the brand coral, the category accents and the brand colours all sit on
+/// one tonal shelf. That is what lets a single ink stay legible on every one of
+/// them, and what makes a grid of these tiles read as a family rather than as a
+/// colour swatch set.
+///
+/// Matching on luminance rather than HSL lightness is the whole trick: at equal
+/// lightness a blue tile is several times darker than a yellow one, which would
+/// make both the ink contrast and the tiles' apparent weight drift with the part
+/// type.
+Color pastelSurface(Color tint, ColorScheme scheme) {
+  final light = scheme.brightness == Brightness.light;
+  final hsl = HSLColor.fromColor(tint);
+  final saturation = light
+      ? hsl.saturation.clamp(0.45, 0.78)
+      : (hsl.saturation * 0.55).clamp(0.18, 0.40);
+
+  // Light: ~1.36:1 against the ivory canvas while holding dark ink at ~11:1.
+  // Dark: ~1.67:1 against the near-black canvas, light ink ~9.7:1.
+  final target = light ? 0.62 : 0.045;
+
+  // Luminance rises monotonically with HSL lightness at fixed hue/saturation,
+  // so a plain bisection finds the tone. Sixteen steps is far more precision
+  // than the eye can resolve, and the whole loop is a few dozen float ops.
+  var low = 0.0;
+  var high = 1.0;
+  var best = hsl.withSaturation(saturation).withLightness(low).toColor();
+  for (var i = 0; i < 16; i++) {
+    final mid = (low + high) / 2;
+    best = hsl.withSaturation(saturation).withLightness(mid).toColor();
+    if (best.computeLuminance() < target) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return best;
+}
+
+/// The single ink used on every pastel surface, in either brightness. ~12:1
+/// against the lightest pastel the palette can produce.
+Color pastelInk(ColorScheme scheme) =>
+    scheme.brightness == Brightness.light
+        ? brandInk
+        : const Color(0xFFF4EDE3);
+
+/// Quieter ink for the caption line only. At 0.72 alpha it still clears 5:1 on
+/// any pastel surface — the muted step is quieter than the tinted captions it
+/// replaces, yet several times more legible.
+Color pastelInkMuted(ColorScheme scheme) =>
+    pastelInk(scheme).withValues(alpha: 0.72);

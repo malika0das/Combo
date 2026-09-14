@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_scope.dart';
-import 'screens/home_screen.dart';
+import 'screens/home_shell.dart';
 import 'services/ads_service.dart';
 import 'services/catalog_service.dart';
 import 'services/prefs_service.dart';
@@ -19,10 +19,12 @@ Future<void> main() async {
   // free of a runtime-download caveat.
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    systemNavigationBarColor: Colors.transparent,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ),
+  );
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   // Orientation is intentionally NOT locked: tablets and foldables on a repair
   // bench are commonly used in landscape, and the layouts are responsive.
@@ -35,9 +37,12 @@ Future<void> main() async {
 
   // Non-blocking: the UI shows bundled data immediately.
   unawaited(catalog.init());
-  unawaited(ads.init(personalized: prefs.personalizedAds));
 
   runApp(ComboUniversalApp(prefs: prefs, catalog: catalog, ads: ads));
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(ads.init(personalized: prefs.personalizedAds));
+  });
 }
 
 class ComboUniversalApp extends StatelessWidget {
@@ -79,7 +84,7 @@ class ComboUniversalApp extends StatelessWidget {
               child: child ?? const SizedBox.shrink(),
             );
           },
-          home: const HomeScreen(),
+          home: const HomeShell(),
         ),
       ),
     );

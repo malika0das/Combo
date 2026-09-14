@@ -7,11 +7,10 @@
 
     <application
         android:label="Combo Universal"
-        android:name="${applicationName}"
+        android:name=".ComboUniversalApplication"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false"
-        android:networkSecurityConfig="@xml/network_security_config"
-        android:enableOnBackInvokedCallback="true">
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".MainActivity"
@@ -28,16 +27,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <!-- App Links / deep links: combouniversal.com pages open in the app.
-                 Good for SEO - Play indexes these and web results can launch the app. -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="combouniversal.com" />
-                <data android:scheme="https" android:host="www.combouniversal.com" />
             </intent-filter>
         </activity>
 
@@ -63,10 +52,7 @@
     </application>
 
     <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
-        </intent>
+        <!-- Required on Android 11+ for the system share sheet (share_plus). -->
         <intent>
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="text/plain" />

@@ -7,7 +7,6 @@ import '../motion.dart';
 import '../responsive.dart';
 import '../services/search_engine.dart';
 import '../theme.dart';
-import '../widgets/banner_ad_slot.dart';
 import '../widgets/dimensional.dart';
 import '../widgets/ui.dart';
 import 'model_screen.dart';
@@ -67,6 +66,15 @@ class _CompareScreenState extends State<CompareScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // As a shell tab this screen is built before the catalog engine has
+    // loaded, so it must rebuild when the catalog arrives.
+    return AnimatedBuilder(
+      animation: AppScope.of(context).catalog,
+      builder: (context, _) => _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     final scope = AppScope.of(context);
     final engine = scope.catalog.engine;
     final scheme = Theme.of(context).colorScheme;
@@ -93,7 +101,6 @@ class _CompareScreenState extends State<CompareScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: BannerAdSlot(ads: scope.ads),
       body: PageBody(
         child: ListView(
         padding: EdgeInsets.fromLTRB(
@@ -206,7 +213,7 @@ class _CompareScreenState extends State<CompareScreen> {
                   ),
                   child: Column(
                     children: [
-                      CompatibilityGlyph(matched: true, color: Colors.white),
+                      const CompatibilityGlyph(matched: true, color: Colors.white),
                       Gap.md,
                       Text(
                         'One part fits all ${_models.length}',

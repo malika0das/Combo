@@ -1,8 +1,17 @@
+import 'dart:math' as math;
+
 import 'package:combo_universal/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
+  // buildTheme resolves fonts through google_fonts, which needs the binding
+  // for the asset bundle. Fonts are bundled in assets/google_fonts/, so with
+  // runtime fetching off they load from assets and never touch the network.
+  TestWidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   group('theme', () {
     for (final brightness in Brightness.values) {
       test('builds for $brightness with a complete type scale', () {
@@ -90,5 +99,60 @@ void main() {
         expect(iconFor(key), isA<IconData>());
       }
     });
+  });
+
+  group('pastel tiles', () {
+    const accents = ['display', 'battery', 'glass', 'board', 'case'];
+
+    /// WCAG contrast ratio between two opaque colours.
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+    }
+
+    for (final brightness in Brightness.values) {
+      // The tiles put every line of text on the pastel itself, so the ink has
+      // to hold up against *all* of them, not just the brand colour. This is the
+      // regression guard for "someone adds an accent and the caption vanishes".
+      test('$brightness keeps one ink legible on every pastel', () {
+        final scheme = buildTheme(brightness).colorScheme;
+        final tints = <Color>[
+          scheme.primary,
+          ...accents.map((k) => accentFor(k, scheme)),
+        ];
+
+        for (final tint in tints) {
+          final pastel = pastelSurface(tint, scheme);
+          expect(contrast(pastel, pastelInk(scheme)), greaterThanOrEqualTo(7.0),
+              reason: '$brightness number ink fails AAA on $tint');
+
+          // The caption is the muted step, so it is the one that can fail.
+          final muted = Color.alphaBlend(pastelInkMuted(scheme), pastel);
+          expect(contrast(pastel, muted), greaterThanOrEqualTo(4.5),
+              reason: '$brightness caption ink fails AA on $tint');
+        }
+      });
+
+      test('$brightness pastels are opaque, distinct and visible on the canvas',
+          () {
+        final theme = buildTheme(brightness);
+        final scheme = theme.colorScheme;
+        final fills = accents
+            .map((k) => pastelSurface(accentFor(k, scheme), scheme))
+            .toList();
+
+        for (final fill in fills) {
+          // A solid fill, not an alpha wash: the tint used to be 12% alpha, and
+          // text on that picked up whatever sat behind the card.
+          expect(fill.a, greaterThan(0.99));
+          // The tile has to read as a tile against the page it sits on.
+          expect(contrast(fill, theme.scaffoldBackgroundColor),
+              greaterThanOrEqualTo(1.20));
+        }
+        expect(fills.toSet().length, fills.length,
+            reason: 'two part types would be indistinguishable');
+      });
+    }
   });
 }
