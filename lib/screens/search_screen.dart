@@ -325,6 +325,21 @@ class _SearchScreenState extends State<SearchScreen> {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (directoryModel) ...[
+                    Gap.lg,
+                    FilledButton.icon(
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: const Text('Open model profile'),
+                      onPressed: () {
+                        Haptics.tap();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ModelScreen(model: _query.trim()),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                   if (_result.suggestions.isNotEmpty) ...[
                     Gap.xl,
                     Text(
