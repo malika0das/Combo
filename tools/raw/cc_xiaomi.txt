@@ -1,3 +1,8 @@
+# Charging Sub Board / CC references are retained under the legacy ccboard ID.
+# Category terminology and exact supplier examples researched from:
+# https://www.isparehub.com/categories/charging-sub-board
+# https://m.akinfotools.com/details/1622
+# https://www.sunsky-online.com/p/EDA004123206/For-OPPO-K9s-K10-4G-Realme-Q3s-Realme-Q3t-Realme-V25-Original-Charging-Port-Board.htm
 Redmi 11 Prime, Redmi 11X
 Redmi 6, Redmi 6A
 Poco C65 5G, Redmi 13C 4G, Redmi 13C 5G, Redmi 13R 5G

@@ -17,7 +17,8 @@ import 'search_engine.dart';
 /// Remote updates are strictly opt-in: the app never talks to a hardcoded
 /// server. Provide one at build time with e.g.
 ///   flutter build appbundle --dart-define=CATALOG_URL=https://your-host/catalog.json
-/// Without it the bundled + cached data is used and nothing leaves the device.
+/// Without it the bundled + cached data is used and no catalog data request
+/// leaves the device. Advertising remains a separate, consent-gated service.
 class CatalogService extends ChangeNotifier {
   CatalogService({http.Client? client}) : _client = client ?? http.Client();
 
@@ -57,8 +58,14 @@ class CatalogService extends ChangeNotifier {
     notifyListeners();
     try {
       final bundled = await _loadBundled();
+      if (!bundled.isUsable) {
+        throw const FormatException('Bundled catalog has no compatibility lists');
+      }
       final cached = await _loadCached();
-      _catalog = (cached != null && cached.version > bundled.version) ? cached : bundled;
+      final usableCached = cached != null && cached.isUsable;
+      _catalog = (usableCached && cached!.version > bundled.version)
+          ? cached
+          : bundled;
       _source = identical(_catalog, cached) ? 'cached update' : 'bundled';
       _engine = null; // built lazily on first access, off the critical path
       _error = null;
@@ -103,7 +110,8 @@ class CatalogService extends ChangeNotifier {
       if (res.statusCode == 200) {
         final remote = Catalog.fromJson(
             jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>);
-        if (_catalog == null || remote.version > _catalog!.version) {
+        if (remote.isUsable &&
+            (_catalog == null || remote.version > _catalog!.version)) {
           _catalog = remote;
           _engine = null; // invalidate; rebuilt lazily against the new catalog
           _source = 'online update';

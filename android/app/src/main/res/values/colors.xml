@@ -2,5 +2,5 @@
 <resources>
     <!-- Matches _lightBg in lib/theme.dart so there is no colour flash between
          the native splash and the first Flutter frame. -->
-    <color name="splash_background">#F4F6FB</color>
+    <color name="splash_background">#F2EFE4</color>
 </resources>

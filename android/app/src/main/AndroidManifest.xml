@@ -36,8 +36,8 @@
 
         <!-- AdMob application ID. Supplied by Gradle (see admobAppId in
              android/app/build.gradle) so debug builds use Google's sample ID
-             and release builds use the real one. Shipping the sample ID to
-             production serves no ads and looks broken to reviewers. -->
+             and release builds require the real one. The release task fails
+             before packaging if this value is not configured. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />

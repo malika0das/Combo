@@ -24,7 +24,10 @@ void main() {
     test('splits word+number tokens and expands aliases', () {
       expect(SearchEngine.tokenize('note8'), contains('8'));
       expect(SearchEngine.tokenize('rn'), contains('redmi'));
-      expect(SearchEngine.tokenize('samsang'), contains('samsung'));
+      expect(SearchEngine.tokenize('rn9pro'), contains('redmi'));
+      expect(SearchEngine.tokenize('1+'), contains('oneplus'));
+      // Samsung model names are canonicalized to their retail Galaxy family.
+      expect(SearchEngine.tokenize('samsang'), contains('galaxy'));
     });
 
     test('edit distance bails out early', () {
@@ -45,6 +48,7 @@ void main() {
     test('spacing and punctuation do not matter', () {
       expect(engine.search('redmi9a').hits, isNotEmpty);
       expect(engine.search('  REDMI  9a ').hits, isNotEmpty);
+      expect(engine.search('rn9pro').hits, isNotEmpty);
     });
 
     test('typos still find the phone', () {
@@ -61,6 +65,41 @@ void main() {
     test('explicit category scope overrides auto-scope', () {
       final result = engine.search('Redmi 9A battery', categoryId: 'combo');
       expect(result.hits.every((h) => h.category.id == 'combo'), isTrue);
+    });
+
+    test('new part keywords resolve to their own categories', () {
+      expect(engine.detectCategory('iPhone 13 middle frame'), 'frame');
+      expect(engine.detectCategory('Galaxy A53 power volume flex'), 'powerflex');
+      expect(
+          engine.detectCategory('V21 display connector'), 'displayconnector');
+      expect(engine.detectCategory('Galaxy S25 OCA glass'), 'oca');
+      expect(engine.detectCategory('Vivo V17 charging sub board'), 'ccboard');
+      expect(engine.detectCategory('Oppo F15 back cover'), 'case');
+      expect(engine.detectCategory('Redmi 9A tempered glass'), 'tempered');
+      expect(engine.detectCategory('V21 lcdflex'), 'displayconnector');
+      expect(engine.detectCategory('Galaxy S25 ocaglass'), 'oca');
+      expect(engine.detectCategory('Oppo F15 backcover'), 'case');
+      // A bare display still means combo; connector requires the explicit
+      // phrase so existing display search behaviour does not change.
+      expect(engine.detectCategory('Redmi 9A display'), 'combo');
+    });
+
+    test('new part searches stay exact-model scoped', () {
+      final cases = <String, String>{
+        'iPhone 13 middle frame': 'frame',
+        'Galaxy A53 power volume flex': 'powerflex',
+        'V21 display connector': 'displayconnector',
+        'Galaxy S25 OCA glass': 'oca',
+        'Vivo V17 charging sub board': 'ccboard',
+        'Oppo F15 back cover': 'case',
+      };
+      for (final entry in cases.entries) {
+        final result = engine.search(entry.key);
+        expect(result.hits, isNotEmpty, reason: entry.key);
+        expect(result.scopedCategoryId, entry.value, reason: entry.key);
+        expect(result.hits.every((h) => h.category.id == entry.value), isTrue,
+            reason: entry.key);
+      }
     });
 
     test('results are capped', () {
@@ -112,7 +151,18 @@ void main() {
 
     test('hasModel is normalization aware', () {
       expect(engine.hasModel('  redmi   9a '), isTrue);
+      expect(engine.hasModel('Samsung A10'), isTrue);
       expect(engine.hasModel('not a real phone'), isFalse);
+    });
+
+    test('directory-only models are searchable without fake part hits', () {
+      // Galaxy S25 has a sourced OCA mapping now; iPhone 18 Pro remains a
+      // directory-only recent release and must keep the pending state.
+      expect(engine.hasModel('iPhone 18 Pro'), isTrue);
+      expect(engine.profileFor('iPhone 18 Pro').isEmpty, isTrue);
+      expect(engine.search('iPhone 18 Pro').hits, isEmpty);
+      expect(engine.search('iPhone 18 Pro').suggestions, isEmpty);
+      expect(engine.complete('iPhone 18 Pro'), contains('iPhone 18 Pro'));
     });
   });
 }

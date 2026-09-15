@@ -1,45 +1,90 @@
 # Play Console → Data Safety answers
 
-Answer the form exactly like this for the current code.
+This file is a release checklist, not a substitute for the Play Console form. The
+form must describe the exact binary uploaded to Play, including every SDK. The
+current app includes Google Mobile Ads, so do not answer “no data collected”.
 
-## Does your app collect or share any of the required user data types?
-**Yes** — only via the advertising SDK.
+## SDK source of truth
 
-| Data type | Collected | Shared | Purpose | Optional? |
-|---|---|---|---|---|
-| Device or other IDs (Advertising ID) | Yes | Yes (Google AdMob) | Advertising or marketing; Analytics | Users can opt out of personalised ads in Settings |
-| Approximate location | No | No | — | — |
-| Personal info (name, email, phone) | No | No | — | — |
-| Photos, files, contacts, messages | No | No | — | — |
-| App activity (searches) | No | No | Stored on device only, never transmitted | — |
+Google's current Google Mobile Ads disclosure says the SDK automatically collects
+and shares IP address, user product interactions, diagnostic information and
+device/account identifiers for advertising, analytics and fraud prevention. It
+also says the traffic is encrypted in transit. Review the SDK disclosure again
+when upgrading `google_mobile_ads`:
 
-## Security practices
-- Data is encrypted in transit: **Yes** (HTTPS only; cleartext disabled in the manifest).
-- Users can request data deletion: **Yes** — all app data is local; uninstalling or clearing app storage deletes it. In-app "Clear" removes recent searches.
-- Committed to Play Families Policy: **No** (target audience 18+).
-- Independent security review: No.
+- https://developers.google.com/admob/android/privacy/play-data-disclosure
+- https://developers.google.com/admob/flutter/privacy
+
+## Data types to review in the Play Console form
+
+For a build with ads enabled, the following SDK data types must be declared and
+shared with Google. Map the SDK wording to the Play Console wording as shown:
+
+| Play data type | What Google Mobile Ads may receive | Collected/shared | Purposes |
+|---|---|---|---|
+| Location → Approximate location | IP address may be used to estimate general location | Yes / shared with Google | Advertising, analytics, fraud prevention |
+| App activity → App interactions | App launch, taps and ad/video views | Yes / shared with Google | Advertising, analytics, fraud prevention |
+| App info and performance → Diagnostics | App launch time, hang rate and energy usage | Yes / shared with Google | Advertising, analytics, fraud prevention |
+| Device or other IDs | Android Advertising ID, App Set ID and applicable account identifiers | Yes / shared with Google | Advertising, analytics, fraud prevention |
+
+Do not declare the app's local searches, saved lists, order notes, theme or
+catalog cache as collected by the developer: these remain on the device and are
+not transmitted by the app. The ad SDK's app-interaction telemetry is a
+separate disclosure and must still be declared.
+
+For the current build:
+
+- **Encrypted in transit:** Yes. HTTPS is required for catalog updates and
+  Google's ad SDK uses TLS.
+- **User deletion request:** No account exists and there is no server-side user
+  profile. Users can clear local app data or uninstall. Google handles ad/SDK
+  retention under Google's own policies.
+- **Account creation:** No.
+- **Target audience:** adults / professional technicians; do not enrol in
+  Designed for Families. Answer the target-audience and content-rating forms
+  truthfully in Play Console.
+- **Permissions:** `INTERNET`, `ACCESS_NETWORK_STATE` and `AD_ID` only. There is
+  no location, camera, microphone, contacts, SMS, storage, package-visibility,
+  notification or foreground-service permission.
+
+The Android Advertising ID can be reset or deleted in Android settings, and
+Google's limited-ad/consent modes can reduce identifier collection. Verify the
+“optional” answer in the Play form against the exact ad serving configuration;
+do not mark every row optional merely because the user can disable ad
+personalisation.
+
+## Consent and prominent disclosure
+
+Before Mobile Ads initializes, the app shows an in-app disclosure naming the
+SDK data categories and purposes. The user can continue without ads for that
+session. After that disclosure, the Google UMP flow is used when required, and
+`canRequestAds()` gates every ad request. A required Privacy options entry point
+is kept in Settings so users can revisit consent choices.
 
 ## Permissions declared and why
+
 | Permission | Why |
 |---|---|
-| `INTERNET` | Download list updates, serve ads |
-| `ACCESS_NETWORK_STATE` | Detect offline state so updates fail gracefully |
-| `com.google.android.gms.permission.AD_ID` | Required by AdMob on Android 13+ |
+| `INTERNET` | Optional catalog updates and Google Mobile Ads |
+| `ACCESS_NETWORK_STATE` | Detect offline state and avoid failed update requests |
+| `com.google.android.gms.permission.AD_ID` | Google Mobile Ads advertising identifier when available |
 
-## Consent (EEA / UK / Switzerland)
+## Release configuration
 
-Before any ad is requested, the app runs Google's User Messaging Platform
-consent flow (`AdsService._gatherConsent()`). If the user declines, or if the
-consent state cannot be determined, `AdsService.initialized` stays false and
-**no ad is ever requested** - banners render at zero height and interstitials
-are skipped.
+Release builds must not use Google's sample ad units. Supply live values without
+committing them:
 
-Users in a region where consent is required also get a persistent
-**Settings -> Privacy options** entry so they can change their choice later, as
-Google's EU user consent policy requires.
+```text
+flutter build appbundle --release \
+  --dart-define=USE_REAL_ADS=true \
+  --dart-define=ADMOB_BANNER_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/BBBBBBBBBB \
+  --dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/IIIIIIIIII
+```
 
-When answering the Play data safety form, declare the advertising ID as
-*collected and shared* for "Advertising or marketing", marked **optional**,
-because the user can decline consent and can switch to non-personalised ads.
-
-No sensitive permissions (no location, camera, storage, contacts, SMS, QUERY_ALL_PACKAGES, or foreground service) are requested — this avoids Play's declaration forms entirely.
+Also provide the live AdMob **application ID** through
+`android/local.properties` (`admob.appId=...`) or CI's
+`-PadmobAppId=...`. A release missing a valid live application ID or production signing
+configuration fails the Gradle build. A release with missing or malformed unit
+IDs disables ad requests at runtime, rather than sending test or placeholder
+traffic. Replace the placeholders above locally; do not commit real account
+identifiers if your release process keeps them in CI secrets/configuration.

@@ -8,6 +8,7 @@ class PrefsService extends ChangeNotifier {
   static const _savedKey = 'saved_groups';
   static const _darkKey = 'dark_mode';
   static const _consentKey = 'ads_personalized';
+  static const _adDisclosureKey = 'ads_data_disclosure_shown';
   static const _listKey = 'stock_list';
   static const _qtyKey = 'stock_qty';
   static const _notesKey = 'group_notes';
@@ -21,6 +22,7 @@ class PrefsService extends ChangeNotifier {
   List<String> _saved = const [];
   bool _dark = false;
   bool _personalizedAds = false;
+  bool _adDisclosureShown = false;
   List<String> _stock = const [];
   Map<String, String> _notes = const {};
   Map<String, int> _qty = const {};
@@ -31,6 +33,7 @@ class PrefsService extends ChangeNotifier {
   List<String> get saved => _saved;
   bool get dark => _dark;
   bool get personalizedAds => _personalizedAds;
+  bool get adDisclosureShown => _adDisclosureShown;
 
   /// Codes queued on the purchase / stock list.
   List<String> get stock => _stock;
@@ -52,6 +55,7 @@ class PrefsService extends ChangeNotifier {
     _saved = _prefs!.getStringList(_savedKey) ?? const [];
     _dark = _prefs!.getBool(_darkKey) ?? false;
     _personalizedAds = _prefs!.getBool(_consentKey) ?? false;
+    _adDisclosureShown = _prefs!.getBool(_adDisclosureKey) ?? false;
     _stock = _prefs!.getStringList(_listKey) ?? const [];
     _notes = _decodeNotes(_prefs!.getStringList(_notesKey) ?? const []);
     _qty = _decodeQty(_prefs!.getStringList(_qtyKey) ?? const []);
@@ -176,6 +180,12 @@ class PrefsService extends ChangeNotifier {
   Future<void> setPersonalizedAds(bool value) async {
     _personalizedAds = value;
     await _prefs?.setBool(_consentKey, value);
+    notifyListeners();
+  }
+
+  Future<void> markAdDisclosureShown() async {
+    _adDisclosureShown = true;
+    await _prefs?.setBool(_adDisclosureKey, true);
     notifyListeners();
   }
 }

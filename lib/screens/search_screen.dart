@@ -43,6 +43,8 @@ class _SearchScreenState extends State<SearchScreen> {
   );
   List<String> _completions = const [];
   bool _searching = false;
+  SearchEngine? _lastSearchedEngine;
+  bool _searchQueued = false;
 
   List<SearchHit> get _hits => _result.hits;
 
@@ -86,16 +88,17 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _run(String value) {
+    if (!mounted) return;
     final scope = AppScope.of(context);
     final engine = scope.catalog.engine;
-    final result =
-        engine?.search(value, categoryId: _categoryId) ??
-        const SearchResult(
-          hits: [],
-          suggestions: [],
-          scopedCategoryId: null,
-          fuzzy: false,
-        );
+    if (engine == null) {
+      // Keep the skeleton visible until the bundled index exists instead of
+      // presenting a false "nothing found" state during cold start.
+      setState(() => _searching = value.trim().isNotEmpty);
+      return;
+    }
+    _lastSearchedEngine = engine;
+    final result = engine.search(value, categoryId: _categoryId);
     final hadHits = _result.hits.isNotEmpty;
     setState(() {
       _result = result;
@@ -116,9 +119,34 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
+    return AnimatedBuilder(
+      // Search can be opened while the bundled catalog is still warming up,
+      // and a remote refresh can replace the index while this route is open.
+      // Rebuilding from the catalog notifier keeps both cases visible without
+      // duplicating catalog state inside the screen.
+      animation: Listenable.merge([scope.catalog, scope.prefs]),
+      builder: (context, _) => _buildWithCatalog(context, scope),
+    );
+  }
+
+  Widget _buildWithCatalog(BuildContext context, AppScope scope) {
     final scheme = Theme.of(context).colorScheme;
     final hasQuery = _query.trim().isNotEmpty;
     final categories = scope.catalog.catalog?.categories ?? const <Category>[];
+    final engine = scope.catalog.engine;
+    if (hasQuery &&
+        engine != null &&
+        !identical(engine, _lastSearchedEngine) &&
+        !_searchQueued) {
+      _searchQueued = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchQueued = false;
+        if (!mounted || !identical(AppScope.of(context).catalog.engine, engine)) {
+          return;
+        }
+        _run(_query);
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Hero(
@@ -251,6 +279,7 @@ class _SearchScreenState extends State<SearchScreen> {
     List<Category> categories,
   ) {
     final filteredHits = _filteredHits;
+    final directoryModel = _lastSearchedEngine?.hasModel(_query) ?? false;
     return !hasQuery
         ? _Tips(
             onPick: (q) {
@@ -276,7 +305,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   Gap.lg,
                   Text(
-                    _result.suggestions.isEmpty
+                    directoryModel
+                        ? 'Model found — parts pending'
+                        : _result.suggestions.isEmpty
                         ? 'Nothing found yet'
                         : 'Close, but not exact',
                     textAlign: TextAlign.center,
@@ -284,13 +315,31 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   Gap.sm,
                   Text(
-                    InsightService.emptyMessage(
-                      _query.trim(),
-                      _result.suggestions.isNotEmpty,
-                    ),
+                    directoryModel
+                        ? 'This recent model is in the directory, but no compatible '
+                            'universal parts have been verified for it yet.'
+                        : InsightService.emptyMessage(
+                            _query.trim(),
+                            _result.suggestions.isNotEmpty,
+                          ),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (directoryModel) ...[
+                    Gap.lg,
+                    FilledButton.icon(
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: const Text('Open model profile'),
+                      onPressed: () {
+                        Haptics.tap();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ModelScreen(model: _query.trim()),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                   if (_result.suggestions.isNotEmpty) ...[
                     Gap.xl,
                     Text(
@@ -511,7 +560,11 @@ class _Tips extends StatelessWidget {
     'Realme C11',
     'rn9pro',
     'Redmi 9A battery',
-    'Vivo Y17 glass',
+    'iPhone 13 middle frame',
+    'A53 power volume flex',
+    'V21 display connector',
+    'Vivo Y17 OCA glass',
+    'Oppo F15 back cover',
   ];
 
   @override

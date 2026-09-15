@@ -22,8 +22,13 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build appbundle --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app-release-aab
-          path: build/app/outputs/bundle/release/*.aab
+      - run: flutter build apk --debug
+      # Do not build a release AAB with this sample workflow. A protected
+      # release workflow must first provide a production signing key,
+      # android/local.properties admob.appId, and the live unit IDs:
+      # flutter build appbundle --release \
+      #   --dart-define=USE_REAL_ADS=true \
+      #   --dart-define=ADMOB_BANNER_ANDROID_ID=... \
+      #   --dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=...
+      # Upload only that signed AAB after the external Play/AdMob checks in
+      # store/COMPLIANCE.md are complete.

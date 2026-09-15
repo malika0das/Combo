@@ -1,13 +1,13 @@
 # Combo Universal — Flutter Android App
 
-Offline-first universal compatibility list (combo/display, battery, tempered glass, CC board, frame) for mobile repair technicians. 100% self-contained: no hardcoded external URLs, no third-party server, nothing to infringe.
+Offline-first universal compatibility list (combo/display, battery, frame, power/volume flex, charging sub-board, display connector, back cover, tempered glass and Touch/OCA glass) for mobile repair technicians. The shipped app has no hardcoded update endpoint or required third-party server; compatibility references are curated and fitment must be independently verified.
 
 ## Features
 - **Smart highlight search** across every category at once, with debounce and exact-match ranking.
 - **Hybrid data**: ships with a bundled JSON catalog (works offline, instantly), silently upgrades from a remote JSON when a higher `version` is published, and caches it locally.
 - Category → brand → list browsing, per-brand filter.
 - Save/bookmark lists, recent searches, copy & WhatsApp share of a full list.
-- Material 3 UI, dark mode, portrait-locked, no login.
+- Material 3 UI, dark mode, responsive portrait/landscape layouts, no login.
 - AdMob adaptive banner + throttled interstitial (1 in 6 navigations), with an in-app personalised-ads toggle.
 - In-app privacy policy and disclaimer screens.
 
@@ -16,11 +16,11 @@ Offline-first universal compatibility list (combo/display, battery, tempered gla
 - Ignores spacing and punctuation — `redmi9a`, `Redmi 9-A` and `REDMI  9a` are the same query.
 - Brand shorthand and common misspellings are expanded (`rn9pro`, `samsang a10`, `1+`, `moto`).
 - Typo tolerance: an exact/substring pass runs first, and only if nothing matches does it fall back to edit-distance matching, so correct spellings never get noisy results.
-- Part keywords auto-scope the query — `redmi 9a battery` searches only the Battery category. Filter chips override it.
+- Part keywords auto-scope the query — `redmi 9a battery`, `A53 power volume flex`, `V21 display connector` and `Galaxy S25 OCA glass` search their specific categories. Filter chips override it.
 - Also matches group codes and battery part numbers (`BN4A`, `EB-BA546ABY`).
 - "Did you mean" suggestions when nothing matches, and model autocomplete chips above the results.
 
-**Model profile** — tap any model to see every universal part that fits it (combo, battery, glass, board, cover) plus every phone that shares those parts. Share or copy the whole parts sheet.
+**Model profile** — tap any model to see every sourced part mapping that fits it (combo, battery, frame, flex, connector, OCA, tempered glass, charging board or back cover) plus every phone that shares those parts. Directory-only models remain visible but keep an honest pending/no-fitment state. Share or copy the whole parts sheet.
 
 **Compare models** — add two or more phones and instantly see which categories have a single part covering all of them. Decide what to stock before you buy.
 
@@ -72,8 +72,8 @@ Run `bash tools/fetch_fonts.sh` once to populate `assets/google_fonts/`.
 
 **Colour** — a deep indigo-blue brand seed with an amber accent for search
 highlights. Each part category carries its own accent (`accentFor`) so the home
-grid reads as five distinct destinations: battery green, glass cyan, board
-violet, cover pink, display blue.
+grid reads as distinct destinations: battery green, glass cyan, board violet, cover pink,
+frame amber, power-flex coral, connector blue and OCA indigo.
 
 **Shared primitives** (`lib/widgets/ui.dart`) keep every screen consistent:
 `CodeChip` (tap-to-copy monospaced part code), `SoftBadge`, `SectionHeader`,
@@ -110,7 +110,8 @@ lib/
   screens/               home, category/brand, group detail, search, saved, settings, policy
   widgets/               highlight_text.dart, banner_ad_slot.dart
 assets/data/catalog.json bundled offline catalog (generated)
-tools/raw/*.txt          plain-text source lists (one group per line)
+tools/raw/*.txt          plain-text source lists (groups plus the recent model directory)
+tools/raw/models_current.txt  recent 2024–2026 model names without fitment claims
 tools/build_catalog.py   regenerates assets/data/catalog.json from tools/raw/
 store/                   Play listing, data safety, privacy policy, terms, icon source
 ```
@@ -134,16 +135,19 @@ flutter run --dart-define=CATALOG_URL=https://your-host.example/catalog.json
 ```
 
 ## Before you publish
-1. **AdMob IDs** — replace the test app ID in `android/app/src/main/AndroidManifest.xml` and the `real*` unit IDs in `lib/services/ads_service.dart`, then build with `--dart-define=USE_REAL_ADS=true`. Shipping test IDs to production, or real IDs on a dev build, both violate AdMob policy.
+1. **AdMob IDs** — provide the live app ID through `android/local.properties` (`admob.appId=...`) or `-PadmobAppId=...`, and pass both live unit IDs at release build time with `--dart-define=USE_REAL_ADS=true`, `--dart-define=ADMOB_BANNER_ANDROID_ID=...` and `--dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=...`. Debug builds use Google's test IDs; release builds fail closed rather than shipping sample or placeholder IDs.
 2. **Application ID** — currently `com.makund.combouniversal` (`android/app/build.gradle`). The existing Play listing uses `com.makund.combosupport`; use that ID instead if you are updating the same app rather than publishing a new one.
 3. **Signing** — create `android/key.properties` (git-ignored) with `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
 4. **Icon** — `store/icon_source.png` is a 1024px source; generate launcher densities (e.g. with `flutter_launcher_icons`) into `android/app/src/main/res/mipmap-*`.
-5. **Privacy policy URL** — publish `store/PRIVACY_POLICY.md` at a public URL and enter it in Play Console.
-6. **Data safety form** — copy the answers in `store/DATA_SAFETY.md`.
+5. **Privacy policy URL** — publish `store/PRIVACY_POLICY.md` at a public, non-geofenced URL you control, verify it in an incognito browser, and enter the final URL manually in Play Console. The repository file is not itself a hosted policy URL.
+6. **Data safety form** — use `store/DATA_SAFETY.md`, then verify every answer against the exact AAB and current SDK disclosures.
 
 Build the release bundle:
 ```bash
-flutter build appbundle --release --dart-define=USE_REAL_ADS=true
+flutter build appbundle --release \
+  --dart-define=USE_REAL_ADS=true \
+  --dart-define=ADMOB_BANNER_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/BBBBBBBBBB \
+  --dart-define=ADMOB_INTERSTITIAL_ANDROID_ID=ca-app-pub-XXXXXXXXXXXXXXXX/IIIIIIIIII
 ```
 
 ## Publishing catalog updates without an app update
@@ -152,7 +156,7 @@ Host a JSON file with the same schema as `assets/data/catalog.json` at `CATALOG_
 ## Policy notes baked in
 - Minimal permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `AD_ID`. No location/storage/contacts, no `QUERY_ALL_PACKAGES`.
 - Cleartext traffic disabled; HTTPS-only network security config.
-- `targetSdk 35` (meets Play's 2025+ target API requirement).
+- `compileSdk 36` and `targetSdk 36` (Android 16; required for new apps and updates submitted from 31 August 2026).
 - Interstitials never appear on app open or back press, and banners render only after load — no accidental clicks.
 - Trademark disclaimer for brand names included in the listing and in-app terms.
 
@@ -164,9 +168,14 @@ flutter test
 
 ## Updating the bundled data
 
-The offline catalog ships with **1,174 universal lists covering 5,675 phone
-models** across 5 categories (Combo/Display, Battery, Tempered Glass, CC/Sub
-Board, Mobile Cover).
+The offline catalog currently ships with **1,420 universal lists covering 5,977
+compatibility references** across 9 categories: Combo/Display, Battery, Frame /
+Middle Frame, Power / Volume Flex, Display Connector, Touch / OCA Glass,
+Tempered / Screen Guard, Charging Sub Board and Back Cover. It also includes a
+de-duplicated directory of **226 recent 2024–2026 phone names** whose part
+compatibility has not yet been verified. Directory-only models are searchable
+and clearly shown as awaiting a tested part mapping; they are never presented
+as compatible.
 
 Edit the plain-text sources in `tools/raw/` and regenerate:
 
@@ -176,10 +185,16 @@ python3 tools/build_catalog.py
 
 Formats:
 
-- `combo_*.txt`, `glass_*.txt`, `cc_*.txt`, `case_all.txt` — one group per line,
-  models comma separated. Trailing descriptors such as `Punch Hole LCD` are
-  detected automatically and stored as the group note.
+- `combo_*.txt`, `glass_*.txt`, `cc_*.txt`, `case_all.txt`, `frame_all.txt`,
+  `powerflex_all.txt`, `displayconnector_all.txt` and `oca_all.txt` — one group
+  per line, models comma separated. Trailing descriptors such as `Punch Hole
+  LCD` are detected automatically and stored as the group note. The new raw
+  lists retain supplier URLs and keep display connectors/flexes model-specific;
+  OCA glass is intentionally separate from Tempered / Screen Guard glass.
 - `battery_*.txt` — `Battery code|Model, Model, Model` per line.
+- `models_current.txt` — one recent model per line; comments beginning with `#`
+  record manufacturer sources. The builder normalizes and de-duplicates these
+  names, then removes names already covered by a compatibility group.
 - Lines starting with `Coming Soon` are skipped.
 
 To push an update without a Play release, host the generated JSON at

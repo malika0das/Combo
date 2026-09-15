@@ -92,9 +92,14 @@ class StockScreen extends StatelessWidget {
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(24),
                           ),
-                          child: Row(
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 16,
+                            runSpacing: 12,
                             children: [
-                              Expanded(
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 300),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -118,7 +123,6 @@ class StockScreen extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              Gap.wMd,
                               FilledButton.icon(
                                 onPressed: () => Share.share(text),
                                 icon: const Icon(Icons.send_rounded, size: 18),
@@ -163,52 +167,109 @@ class StockScreen extends StatelessWidget {
                                   Theme.of(context).colorScheme.onErrorContainer),
                         ),
                         child: Card(
-                        child: ListTile(
-                          title: Text(group.title,
-                              maxLines: 2, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(
-                            '${category.name} · ${brand.name} · ${group.code}'
-                            '${note.isEmpty ? '' : '\nNote: $note'}',
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 14, 10, 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => GroupScreen(group: group),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              group.title,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${category.name} · ${brand.name} · ${group.code}',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: 'Edit shop note',
+                                        icon: const Icon(Icons.edit_note_rounded),
+                                        onPressed: () =>
+                                            _editNote(context, scope, code, note),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (note.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Text(
+                                      'Note: $note',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ),
+                                ],
+                                const Divider(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Quantity',
+                                      style: Theme.of(context).textTheme.labelMedium,
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Fewer pieces',
+                                      visualDensity: VisualDensity.compact,
+                                      icon: const Icon(
+                                          Icons.remove_circle_outline_rounded),
+                                      onPressed: qty > 1
+                                          ? () => scope.prefs.setQty(code, qty - 1)
+                                          : null,
+                                    ),
+                                    Semantics(
+                                      label: '$qty ${qty == 1 ? 'piece' : 'pieces'}',
+                                      child: Text(
+                                        'x$qty',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                                fontWeight: FontWeight.w700),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'More pieces',
+                                      visualDensity: VisualDensity.compact,
+                                      icon: const Icon(
+                                          Icons.add_circle_outline_rounded),
+                                      onPressed: () =>
+                                          scope.prefs.setQty(code, qty + 1),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          isThreeLine: note.isNotEmpty,
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => GroupScreen(group: group),
-                          )),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: 'Note',
-                                icon: const Icon(Icons.edit_note_rounded),
-                                onPressed: () =>
-                                    _editNote(context, scope, code, note),
-                              ),
-                              // Quantity stepper: how many pieces of this
-                              // list go on the order. Lands in the shared text.
-                              IconButton(
-                                tooltip: 'Fewer pieces',
-                                icon: const Icon(
-                                    Icons.remove_circle_outline_rounded),
-                                onPressed: qty > 1
-                                    ? () => scope.prefs.setQty(code, qty - 1)
-                                    : null,
-                              ),
-                              Text('x$qty',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge
-                                      ?.copyWith(
-                                          fontWeight: FontWeight.w700)),
-                              IconButton(
-                                tooltip: 'More pieces',
-                                icon: const Icon(
-                                    Icons.add_circle_outline_rounded),
-                                onPressed: () =>
-                                    scope.prefs.setQty(code, qty + 1),
-                              ),
-                            ],
-                          ),
-                        ),
                         ),
                       ),
                     );

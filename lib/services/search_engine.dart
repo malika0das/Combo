@@ -36,10 +36,14 @@ class SearchEngine {
     'rn': 'redmi note',
     'mi': 'xiaomi',
     'note': 'note',
-    'sam': 'samsung',
-    'sammy': 'samsung',
-    'samsang': 'samsung',
-    'samsun': 'samsung',
+    // The catalog normalizes both "Samsung A55" and "Samsung Galaxy A55"
+    // to the retail family name "Galaxy A55". Keep the common workshop
+    // shorthands working against that canonical form.
+    'sam': 'galaxy',
+    'sammy': 'galaxy',
+    'samsung': 'galaxy',
+    'samsang': 'galaxy',
+    'samsun': 'galaxy',
     'vivi': 'vivo',
     'vivp': 'vivo',
     'opo': 'oppo',
@@ -70,6 +74,9 @@ class SearchEngine {
   static const Map<String, String> categoryHints = <String, String>{
     'combo': 'combo',
     'folder': 'combo',
+    // A bare display/lcd query still means the existing combo category. The
+    // phrase-aware detector below routes "display connector" and "lcd flex"
+    // to the new, model-specific connector category.
     'display': 'combo',
     'lcd': 'combo',
     'screen': 'combo',
@@ -90,7 +97,27 @@ class SearchEngine {
     'cover': 'case',
     'case': 'case',
     'back': 'case',
+    'backcover': 'case',
     'pouch': 'case',
+    'frame': 'frame',
+    'middle': 'frame',
+    'middleframe': 'frame',
+    'housing': 'frame',
+    'power': 'powerflex',
+    'powerflex': 'powerflex',
+    'volume': 'powerflex',
+    'volumeflex': 'powerflex',
+    'button': 'powerflex',
+    'flex': 'powerflex',
+    'connector': 'displayconnector',
+    'displayconnector': 'displayconnector',
+    'lcdflex': 'displayconnector',
+    'subboard': 'ccboard',
+    'chargingboard': 'ccboard',
+    'oca': 'oca',
+    'ocaglass': 'oca',
+    'touch': 'oca',
+    'touchglass': 'oca',
   };
 
   void _build() {
@@ -118,6 +145,15 @@ class SearchEngine {
         }
       }
     }
+
+    // The recent model directory deliberately has no fake compatibility entry.
+    // Registering it here makes it available to autocomplete and the A–Z
+    // browser while profileFor still returns an empty, honest parts list.
+    for (final model in catalog.knownModels) {
+      final normal = normalize(model);
+      if (normal.isEmpty) continue;
+      _models.putIfAbsent(normal, () => _ModelRef(model, normal));
+    }
   }
 
   /// Every distinct model name in the catalog, sorted for the A–Z browser.
@@ -132,7 +168,12 @@ class SearchEngine {
     var lastWasSpace = true;
     for (final rune in input.toLowerCase().runes) {
       final ch = String.fromCharCode(rune);
-      final isWord = (rune >= 97 && rune <= 122) || (rune >= 48 && rune <= 57);
+      // Keep the plus sign because `1+` is a real technician shorthand for
+      // OnePlus. Other punctuation still collapses to a separator, so spacing
+      // and dashes remain forgiving.
+      final isWord = (rune >= 97 && rune <= 122) ||
+          (rune >= 48 && rune <= 57) ||
+          rune == 43;
       if (isWord) {
         buffer.write(ch);
         lastWasSpace = false;
@@ -145,6 +186,15 @@ class SearchEngine {
   }
 
   static String compact(String normalized) => normalized.replaceAll(' ', '');
+
+  /// Accept legacy workshop spellings after the catalog canonicalized Samsung
+  /// names to their retail Galaxy family ("Samsung A10" -> "Galaxy A10").
+  static String _modelKey(String input) {
+    final normal = normalize(input);
+    if (!normal.startsWith('samsung ')) return normal;
+    final tail = normal.substring('samsung '.length).trim();
+    return tail.startsWith('galaxy ') ? tail : 'galaxy $tail';
+  }
 
   /// Distinct 3-character windows of [packed], used to build and probe the
   /// inverted index.
@@ -203,13 +253,30 @@ class SearchEngine {
     return union.toList(growable: false);
   }
 
+  /// Expands a shorthand even when it is glued to a model number. Technicians
+  /// commonly type `rn9pro`, not `rn 9 pro`; exact alias lookup alone would
+  /// miss the `rn` prefix and silently turn a useful shortcut into no result.
+  static String? _expandAliasPrefix(String token) {
+    final matches = aliases.keys
+        .where((key) =>
+            key.length >= 2 &&
+            token.length > key.length &&
+            token.startsWith(key) &&
+            RegExp(r'\d').hasMatch(token.substring(key.length)))
+        .toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    if (matches.isEmpty) return null;
+    final key = matches.first;
+    return '${aliases[key]} ${token.substring(key.length)}';
+  }
+
   /// Splits digits from letters so "note8" also matches "note 8", and expands
   /// brand shorthand.
   static List<String> tokenize(String normalized) {
     final tokens = <String>[];
     for (final raw in normalized.split(' ')) {
       if (raw.isEmpty) continue;
-      final expanded = aliases[raw] ?? raw;
+      final expanded = aliases[raw] ?? _expandAliasPrefix(raw) ?? raw;
       for (final part in expanded.split(' ')) {
         if (part.isEmpty) continue;
         // Split a mixed token like "9a5000" into "9a" only when it is clearly
@@ -251,10 +318,44 @@ class SearchEngine {
   }
 
   /// Reads a part keyword out of the query ("redmi 9a battery" -> 'battery').
+  ///
+  /// Connector and flex are deliberately phrase-aware. A bare "display" is
+  /// still the established combo search, while "display connector" and "lcd
+  /// flex" must reach their own exact-model compatibility lists. Likewise,
+  /// "touch glass" means OCA glass, not the separate tempered/screen-guard
+  /// category.
   String? detectCategory(String rawQuery) {
-    for (final token in tokenize(normalize(rawQuery))) {
+    final normal = normalize(rawQuery);
+    final has = (String phrase) =>
+        RegExp(r'(^| )' + RegExp.escape(phrase) + r'( |$)').hasMatch(normal);
+
+    String? existing(String id) =>
+        catalog.categories.any((c) => c.id == id) ? id : null;
+
+    if ((has('display connector') ||
+            has('lcd connector') ||
+            has('display flex') ||
+            has('lcd flex')) &&
+        catalog.categories.any((c) => c.id == 'displayconnector')) {
+      return 'displayconnector';
+    }
+    if ((has('power flex') ||
+            has('volume flex') ||
+            has('power volume') ||
+            has('power button') ||
+            has('volume button')) &&
+        catalog.categories.any((c) => c.id == 'powerflex')) {
+      return 'powerflex';
+    }
+    if ((has('touch glass') || has('oca glass')) &&
+        catalog.categories.any((c) => c.id == 'oca')) {
+      return 'oca';
+    }
+
+    for (final token in tokenize(normal)) {
       final hit = categoryHints[token];
-      if (hit != null && catalog.categories.any((c) => c.id == hit)) return hit;
+      final resolved = hit == null ? null : existing(hit);
+      if (resolved != null) return resolved;
     }
     return null;
   }
@@ -361,7 +462,9 @@ class SearchEngine {
 
     final result = SearchResult(
       hits: hits.length > limit ? hits.sublist(0, limit) : hits,
-      suggestions: hits.isEmpty ? suggest(rawQuery) : const [],
+      suggestions: hits.isEmpty && !hasModel(normal)
+          ? suggest(rawQuery)
+          : const [],
       scopedCategoryId: scope,
       fuzzy: usedFuzzy,
     );
@@ -442,7 +545,7 @@ class SearchEngine {
 
   /// Every part, in every category, that fits one specific model.
   ModelProfile profileFor(String model) {
-    final normal = normalize(model);
+    final normal = _modelKey(model);
     final parts = <ModelPart>[];
     final siblings = <String, String>{};
     for (final i in _byModel[normal] ?? const <int>[]) {
@@ -460,7 +563,7 @@ class SearchEngine {
     return ModelProfile(model: display, parts: parts, siblings: siblingList);
   }
 
-  bool hasModel(String model) => _models.containsKey(normalize(model));
+  bool hasModel(String model) => _models.containsKey(_modelKey(model));
 }
 
 class _Entry {

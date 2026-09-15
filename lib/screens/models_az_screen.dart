@@ -159,6 +159,28 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
                                   : 'Tap a model to see compatible parts',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
+                            if (!filterActive) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  SoftBadge(
+                                    label: 'Parts pending',
+                                    color: scheme.tertiary,
+                                    icon: Icons.hourglass_top_rounded,
+                                    dense: true,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Expanded(
+                                    child: Text(
+                                      'Recent directory entries awaiting a tested fit',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -187,6 +209,9 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
                             final showHeader =
                                 i == 0 ||
                                 _initial(model) != _initial(models[i - 1]);
+                            final partsPending = engine != null &&
+                                engine.hasModel(model) &&
+                                engine.profileFor(model).isEmpty;
                             return ListTile(
                               dense: true,
                               leading: showHeader
@@ -215,9 +240,23 @@ class _ModelsAzScreenState extends State<ModelsAzScreen> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              trailing: const Icon(
-                                Icons.chevron_right_rounded,
-                                size: 20,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (partsPending) ...[
+                                    SoftBadge(
+                                      label: 'Pending',
+                                      color: scheme.tertiary,
+                                      icon: Icons.hourglass_top_rounded,
+                                      dense: true,
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                               onTap: () {
                                 Haptics.tap();

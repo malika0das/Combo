@@ -3,12 +3,18 @@
 
 Source format
 -------------
-Combo / glass / CC board / case files: one group per line, comma separated
-models. Trailing descriptive fragments ("Punch Hole LCD Screen", "Notch
-Combo", "Side Flex", ...) are detected and moved into the group note instead
-of being treated as phone models.
+Combo / glass / CC board / case / frame / powerflex / displayconnector / OCA
+files: one group per line, comma separated models. Trailing descriptive
+fragments ("Punch Hole LCD Screen", "Notch Combo", "Side Flex", ...) are
+detected and moved into the group note instead of being treated as phone
+models.
 
 Battery files: `Battery code|Model, Model, Model` per line.
+
+`models_current.txt`: one verified recent phone name per line. These names are
+kept in a separate directory so a newly released phone can be searchable before
+workshop-tested part compatibility is available. Lines beginning with `#` are
+source notes and are ignored.
 
 Usage: python3 tools/build_catalog.py
 """
@@ -72,6 +78,16 @@ def canonical_model(name: str) -> str:
                 words = words[1:]
                 changed = True
                 break
+
+    # Samsung's retail family is Galaxy. Older workshop sheets often wrote
+    # "Samsung A55" while newer sheets wrote "Samsung Galaxy A55"; resolving
+    # both to one display name prevents the model directory from splitting the
+    # same phone into two searchable entries.
+    if words and words[0].lower() == "samsung" and len(words) > 1:
+        if words[1].lower() == "galaxy":
+            words = words[1:]
+        else:
+            words = ["Galaxy", *words[1:]]
     return " ".join(words)
 
 
@@ -104,15 +120,33 @@ def read_lines(name: str) -> list[str]:
     out = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if not line or line.lower().startswith("coming soon"):
+        if (not line or line.startswith("#") or
+                line.lower().startswith("coming soon")):
             continue
         out.append(line)
     return out
 
 
+def read_model_directory() -> list[str]:
+    """Read and normalize one de-duplicated name for every recent phone."""
+    names: list[str] = []
+    seen: set[str] = set()
+    for line in read_lines("models_current.txt"):
+        # Unlike part-list rows, directory rows are deliberately one model per
+        # line. A comma here is almost certainly accidental source formatting;
+        # retaining it would make an unusable model name, so split it safely.
+        for raw in line.split(","):
+            model = canonical_model(raw.strip())
+            key = model.casefold()
+            if model and key not in seen:
+                seen.add(key)
+                names.append(model)
+    return names
+
+
 def build_simple_brand(prefix: str, file_key: str, brand_id: str, brand_name: str,
                        quality: str) -> dict | None:
-    """Groups from a comma-separated file (combo / glass / cc / case)."""
+    """Groups from a comma-separated compatibility source file."""
     lines = read_lines(f"{prefix}_{file_key}.txt")
     if not lines:
         return None
@@ -213,6 +247,48 @@ def main() -> None:
         "brands": battery_brands,
     })
 
+    frame = build_simple_brand(
+        "frame", "all", "all", "All Brands", "Middle Frame / Housing · verify revision")
+    if frame:
+        categories.append({
+            "id": "frame",
+            "name": "Frame / Middle Frame",
+            "icon": "frame",
+            "brands": [frame],
+        })
+
+    powerflex = build_simple_brand(
+        "powerflex", "all", "all", "All Brands",
+        "Power / Volume Button Flex · verify revision")
+    if powerflex:
+        categories.append({
+            "id": "powerflex",
+            "name": "Power / Volume Flex",
+            "icon": "flex",
+            "brands": [powerflex],
+        })
+
+    displayconnector = build_simple_brand(
+        "displayconnector", "all", "all", "All Brands",
+        "Display Connector / LCD Flex · verify pin/pitch/revision")
+    if displayconnector:
+        categories.append({
+            "id": "displayconnector",
+            "name": "Display Connector",
+            "icon": "connector",
+            "brands": [displayconnector],
+        })
+
+    oca = build_simple_brand(
+        "oca", "all", "all", "All Brands", "Touch / OCA Glass · not tempered")
+    if oca:
+        categories.append({
+            "id": "oca",
+            "name": "Touch / OCA Glass",
+            "icon": "oca",
+            "brands": [oca],
+        })
+
     glass_brands = []
     normal = build_simple_brand("glass", "normal", "normal", "Normal Tempered Glass",
                                 "2.5D Full Glue Tempered Glass")
@@ -227,37 +303,70 @@ def main() -> None:
     })
 
     cc_brands = [b for b in (
-        build_simple_brand("cc", key, key, name, "CC / Sub Board")
+        build_simple_brand("cc", key, key, name, "Charging Sub Board")
         for key, name in CC_BRANDS) if b]
     categories.append({
         "id": "ccboard",
-        "name": "CC / Sub Board",
+        "name": "Charging Sub Board",
         "icon": "board",
         "brands": cc_brands,
     })
 
-    case = build_simple_brand("case", "all", "all", "All Brands", "Back Cover / Case")
+    case = build_simple_brand("case", "all", "all", "All Brands", "Back Cover")
     if case:
         categories.append({
             "id": "case",
-            "name": "Mobile Cover / Case",
+            "name": "Back Cover",
             "icon": "case",
             "brands": [case],
         })
 
+    # A model already covered by a compatibility group is searchable through
+    # that group. Keep only directory-only names here so the generated schema
+    # cannot introduce a second copy of an existing model under a different
+    # section. Multiple groups may still reference one model legitimately.
+    compatibility_keys = {
+        re.sub(r"[^a-z0-9+]", "", canonical_model(model).lower())
+        for category in categories
+        for brand in category["brands"]
+        for group in brand["groups"]
+        for model in group["models"]
+    }
+    known_models = [
+        model for model in read_model_directory()
+        if re.sub(r"[^a-z0-9+]", "", canonical_model(model).lower())
+        not in compatibility_keys
+    ]
+
     catalog = {
-        "version": 2,
+        "version": 3,
         "updatedAt": date.today().isoformat(),
-        "source": "Compiled by Makund Mobile from its own parts listings and workshop testing.",
+        "source": (
+            "Compatibility lists are curated by Makund Mobile from manually "
+            "researched manufacturer and supplier references plus its own parts "
+            "records and workshop checks; the recent model directory is checked "
+            "against official manufacturer product pages. Verify fitment before use."
+        ),
         "notice": (
             "Compatibility data is community contributed. Always physically verify "
-            "connector, flex length and frame fit before fitting a part."
+            "connector, flex length, frame revision and panel type before fitting "
+            "a part. Touch / OCA Glass is a lamination part, not Tempered / Screen "
+            "Guard glass; display connectors and flexes are not universal."
         ),
+        # Directory names are intentionally separate from compatibility groups:
+        # listing a newly released phone must never imply that a part has been
+        # tested for it.
+        "knownModels": known_models,
         "categories": categories,
     }
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(catalog, ensure_ascii=False, indent=1), encoding="utf-8")
+    # Keep the bundled asset compact; the plain-text sources remain the
+    # human-editable form and this saves a meaningful amount of APK size.
+    OUT.write_text(
+        json.dumps(catalog, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
 
     total_groups = sum(len(b["groups"]) for c in categories for b in c["brands"])
     total_models = sum(len(g["models"]) for c in categories for b in c["brands"]

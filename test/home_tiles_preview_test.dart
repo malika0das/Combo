@@ -63,8 +63,8 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     // The real bundled numbers, formatted: proof we captured real data.
-    expect(find.text('5,675'), findsOneWidget);
-    expect(find.text('1,174'), findsOneWidget);
+    expect(find.text('5,977'), findsOneWidget);
+    expect(find.text('1,420'), findsOneWidget);
 
     if (!_writePreview) return;
 
